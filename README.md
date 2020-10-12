@@ -9,9 +9,10 @@ That means that instead of programmers that spend the lion share of their life d
 For full information about the project, including documentation, tutorials, blog articles etc. go to the project website <a href=http://spiderwiz.org>www.spiderwiz.org</a>.
 
 # <h2>Documentation</h2>
-A full Javadoc of the project can be found <a href="http://spiderwiz.org/docs/apidocs/">here</a>.
+A full Javadoc of the project can be found <a href="http://spiderwiz.org/web/docs/apidocs/">here</a>.
 
 # <h2>Versions</h2>
 <ul>
   <li>Version 2.3: initial published version.</li>
+    <li>Version Z4.00: Full published version, separated to modules.</li>
 </ul>
