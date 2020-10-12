@@ -2,76 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.spiderwiz</groupId>
-    <artifactId>Spiderwiz</artifactId>
-    <version>2.3</version>
-    <packaging>jar</packaging>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <schemaIncludes>
-                                <include>jaxb/xadmin/*.xsd</include>
-                            </schemaIncludes>
-                            <episodeFile>${project.build.directory}/generated-sources/xjc/META-INF/jaxb-xadmin.episode</episodeFile>
-                            <generatePackage>org.spiderwiz.admin.xml</generatePackage>
-                        </configuration>
-                        <id>jaxb-generate-xadmin</id>
-                    </execution>
-                </executions>
-                <configuration>
-                    <catalog>src/main/resources/jaxb/catalog.xml</catalog>
-                    <catalogResolver>org.jvnet.jaxb2.maven2.resolver.tools.ClasspathCatalogResolver</catalogResolver>
-                    <forceRegenerate>true</forceRegenerate>
-                    <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
-                    <verbose>true</verbose>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <excludePackageNames>
-                        org.spiderwiz.admin.*,org.spiderwiz.endpoints,org.spiderwiz.plugins
-                    </excludePackageNames>
-                    <links>
-                        <link>https://javaee.github.io/javaee-spec/javadocs/</link>
-                    </links>
-                    <bottom>
-                        Copyright © 2020, spiderwiz.org. All rights reserved. Use is subject to
-                        &lt;a href="http://spiderwiz.org/project/index.php/license-terms/"&gt;license terms&lt;/a&gt;.
-                    </bottom>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <dependencies>
-        <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>1.4.7</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>4.0.1</version>
-        </dependency>
-    </dependencies>
+    <artifactId>spiderwiz</artifactId>
+    <version>4.0</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>spiderwiz-core</module>
+        <module>spiderwiz-websocket</module>
+    </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 </project>
