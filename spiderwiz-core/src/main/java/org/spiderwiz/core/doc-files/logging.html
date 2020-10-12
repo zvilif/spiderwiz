@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Spiderwiz Logging System</title>
+        <link href="../../../../stylesheet.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="mystyle.css" type="text/css"/>
+    </head>
+
+    <body>
+        <div class="header">
+            <h1 class="title">Spiderwiz Logging System</h1>
+        </div>
+        <div class="contentContainer">
+            <div class="description">
+              <div class="block">
+                  <h2>General</h2>
+                    <p>Spiderwiz features a powerful logging mechanism. Logs are recorded in a file system that allows easy search for
+                        every event log. Most of the logging is done by the framework automatically, freeing programmers to concentrate
+                        on their tasks. If needed, custom logs can be written in the appropriate log file with a
+                        <a href="../../../../org/spiderwiz/zutils/ZLog.html">one-line API</a>.</p>
+                    <p>In this page we will explain the log system file structure, the various log options and how to configure them, and custom logging.</p>
+                  <h2>Log System File Structure</h2>
+                    <p>All the log files are arranged under the <em>main log folder</em>. By default it is the folder named <code>logs</code> under
+                        the <em>application root folder</em>, but it can be configured to another location as described in
+                        <a href="config.html#LogFolder">Spiderwiz Configuration</a>.</p>
+                    <p>Log files are arranged by days and hours. There are daily folders, named <em>yy-mm-dd</em>, where <em>yy</em> are two digits of the year, <em>mm</em> are two digits of the month and <em>dd</em> are two digits of the day. Under the day folder there are hourly log files, named<em> aphh</em><code>.txt</code>
+                        where <em>ap</em> is <code>am</code> or <code>pm</code> and <em>hh</em> is the two-digit hour.</p>
+                    <p><a id="MainLog"></a>The main log folder contains daily log folders for general events, such as the start and the termination of the application, connections and disconnections of communication lines, code exceptions etc. This is also where custom logs are recorded.</p>
+                    <p>Besides the daily log folders for general events, the main log folder may contain the following folders:</p>
+                    <div class="indent">
+                        <code>Producers</code> - where events related to applications connected to this application as <em>producers</em> (i.e. this application acts as a <em>consumer</em>) are recorded.<br>
+                        <code>Consumers</code> - where events related to applications connected to this application as <em>consumers</em> (i.e. this application acts as a <em>producer</em>) are recorded.<br>
+                        <code>Imports</code> - where events related to import channels are recorded. </div>
+                    <p>Each of these folders contains another level of sub-folders, each for every connection. For <em>producers</em> and <em>consumers</em>, the names of the sub-folders reflect the names of the connected applications (after necessary character escaping to make them valid folder names). For <em>imports</em>, the names of the sub-folders reflect the configured names of the import channels as described in <a href="config.html#importName">Spiderwiz Configuration</a>. These sub-folders contain the daily folders that contain the hourly log files as described above.</p>
+                    <p><strong>Example:</strong></p>
+                    <p>Assuming we are running a car navigation  application. Our application consumes <code>VehicleLocation</code>
+                        objects that contain information about car locations and produces <code>VehicleDirection</code> objects that instruct
+                        drivers where to go. In order to determine best routes, our application consumes also <code>TrafficConditions</code>
+                        objects, which contain information about traffic jams etc. in various route segments. It also needs
+                        <code>TrafficStatistics</code> objects to get traffic statistics for various route segments at various time windows of
+                        the day.</p>
+                    <p>So let's look at the network topology. We connect as a <em>consumer</em> to an application called
+                        <code>VehicleReportCollector</code> to get <code>VehicleLocation</code> objects. We also connect
+                        as a <em>consumer</em> to <code>TrafficConditionReporter</code>. Our output goes to an application called
+                        <code>DriverManager</code>, so we  connect to it as a <em>producer</em>. Finally, we import traffic
+                        statistics from an import channel that we name <code>StatisticManager</code>.</p>
+                    <p>We let our application run 3 hours, from 11pm on December 31, 2019 until 2am on January 1, 2020. Assuming the log root folder name is the default <code>logs</code> and there was something to log  for every connection on every hour (definitely not necessarily the case in every scenario), then at the end of the period the log file system would look like: </p>
+                    <ul class="folderList">
+                        <li><code>logs</code>
+                            <ul>
+                                <li><code>19-12-31</code>
+                                    <ul class="fileList">
+                                        <li><code>pm11.txt</code></li>
+                                    </ul>
+                                </li>
+                                <li><code>20-01-01</code>                              
+                                    <ul class="fileList">
+                                        <li><code>am00.txt</code></li>
+                                        <li><code>am01.txt</code></li>
+                                    </ul>
+                                </li>
+                                <li><code>Producers</code>
+                                    <ul>
+                                        <li><code>VehicleReportCollector</code>
+                                            <ul>
+                                                <li><code>19-12-31</code>
+                                                    <ul class="fileList">
+                                                        <li><code>pm11.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                                <li><code>20-01-01</code>                              
+                                                    <ul class="fileList">
+                                                        <li><code>am00.txt</code></li>
+                                                        <li><code>am01.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li><code>TrafficConditionReporter</code>
+                                            <ul>
+                                                <li><code>19-12-31</code>
+                                                    <ul class="fileList">
+                                                        <li><code>pm11.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                                <li><code>20-01-01</code>                              
+                                                    <ul class="fileList">
+                                                        <li><code>am00.txt</code></li>
+                                                        <li><code>am01.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li><code>Consumers</code>
+                                    <ul>
+                                        <li><code>DriverManager</code>
+                                            <ul>
+                                                <li><code>19-12-31</code>
+                                                    <ul class="fileList">
+                                                        <li><code>pm11.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                                <li><code>20-01-01</code>                              
+                                                    <ul class="fileList">
+                                                        <li><code>am00.txt</code></li>
+                                                        <li><code>am01.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li><code>Imports</code>
+                                    <ul>
+                                        <li><code>StatisticManager</code>
+                                            <ul>
+                                                <li><code>19-12-31</code>
+                                                    <ul class="fileList">
+                                                        <li><code>pm11.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                                <li><code>20-01-01</code>                              
+                                                    <ul class="fileList">
+                                                        <li><code>am00.txt</code></li>
+                                                        <li><code>am01.txt</code></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li></ul>
+                <h2>Features and Options of the Log System</h2>
+                <p>Logs of execution events, such as application start and termination, connections and disconnections of communication lines, data loss detection and code exceptions caught by the framework, are automatically generated by the framework. In addition, the application can be configured to log every input or output line that goes over communication lines.</p>
+                    <p>With respect to full logs of <a href="compression.html">compressed data</a>, you can choose the type of the logs as follows:</p>
+                    <div class="indent"><code>raw</code> - input lines are logged as they are, i.e. with the objects compressed.<br>
+                        <code>full</code> - input lines are expanded to show uncompressed objects.<br>
+                        <code>verbose</code> - every line is logged twice - raw and full. </div>
+                    <p>This kind of  logging can be configured generally for every connection, or individually for specific connections. See details in <a href="config.html#logInput">Application Configuration</a>.</p>
+                    <p>Additionally, when configuring a specific connection, you can use the <code>flushlogs</code> keyword as one of the configuration parameters <span class="colLast"> (no assignment is needed)</span> to indicate <span class="colLast">that the file that logs the activity on this connection shall be flushed on each transaction. Very useful for debugging, but should be used with care since it slows  performance down dramatically.</span></p>
+                    <h2>Log Line Structure</h2>
+                    <p>Every log line in the log files consists of the log time in milliseconds followed by the log text, in the format:</p>
+                    <div class="indent"><code>hh:mm:ss:SSS</code> <em>log-text </em></div>
+                    <p>Raw input lines are recorded as follows:</p>
+                    <div class="indent"><code>hh:mm:ss:SSS</code> <em>&lt;- input-line</em> </div>
+                    <p>Expanded input lines are recorded as follows:</p>
+                    <div class="indent"><code>hh:mm:ss:SSS</code> <em>&lt;= input-line</em> </div>
+                    <p>Raw output lines are recorded as follows:</p>
+                    <div class="indent"><code>hh:mm:ss SSS -&gt;</code> <em>output-line</em></div>
+                    <p>Expanded output lines are recorded as follows:</p>
+                    <div class="indent"><code>hh:mm:ss SSS =&gt;</code> <em>output-line</em></div>
+                    <p>There is one exception - <em>exception</em>. Code exception stack traces are recorded as a series of lines without the timestamp. </p>
+                    <h2>Custom Logging</h2>
+                    <p>Adding custom logs to the <a href="#MainLog">main log folder</a> is easy. You need first to get the application
+                        <em>log object</em> with <code>
+                            <a href="../../../../org/spiderwiz/core/Main.html#getLogger--">
+                                Main.getLogger()</a></code>and then use any of the methods of the returned <code>
+                                    <a href="../../../../org/spiderwiz/zutils/ZLog.html">
+                                        ZLog</a>
+                                </code> object. For instance:</p>
+                    <div class="indent">
+                        <code>Main.getLogger().logf(&quot;Finished counting. Counted %d votes in total&quot;, votes);</code></div>
+                    <p>Alternatively you can create your own <code>
+                            <a href="../../../../org/spiderwiz/zutils/ZLog.html"> ZLog</a></code>
+                        object and use it to create custom log folders. For instance:</p>
+                    <pre>
+    ZLog myLogger = new ZLog(Main.getInstance().getRootFolder(), Main.getConfig());
+    myLogger.init("my log folder");
+    myLogger.logEvent("Did it! This is my first custom log");
+                    </pre>
+              </div>
+            </div>
+        </div>
+    </body>
+</html>

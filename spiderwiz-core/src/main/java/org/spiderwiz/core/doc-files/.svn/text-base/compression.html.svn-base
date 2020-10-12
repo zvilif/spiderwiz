@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Spiderwiz Logging System</title>
+        <link href="../../../../stylesheet.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="mystyle.css" type="text/css"/>
+        </head>
+
+    <body>
+        <div class="header">
+            <h1 class="title">Spiderwiz Data Compression</h1>
+        </div>
+        <div class="contentContainer">
+            <div class="description">
+              <div class="block">
+                  <h2>What is Spiderwiz Data Compression?</h2>
+                  <p>One of the main motivations behind the Spiderwiz framework is to make <em>data sharing</em> robust, fast and easy.
+                      When a programmer
+                      <a href="../../../../org/spiderwiz/core/DataObject.html#commit--">
+                          commits</a> a <em>data object</em>, she shall not worry about the time it takes to the object to reach its destination even if the way there is through a relatively slow modem connection, neither shall he worry about the amount of bytes the serialized object consumes. But the framework's runtime does. To achieve its goal, the runtime applies a<em> two-tier compression algorithm</em>.</p>
+                  <p>The lower tier is physical compression, namely <a href="https://docs.oracle.com/javase/7/docs/api/java/util/zip/GZIPOutputStream.html">GZIP</a>. The upper tier is object-based logical compression. The idea behind it is that when a <em>data object</em> changes it is enough to send over the network only the discrepancies between
+                      the current state of the object and its previous version, rather than sending the entire object content. This is what Spiderwiz does, coupled with a mechanism for detection of data loss and
+                      recovering full key-frames when necessary. (The term <em>key-frame</em> is taken from video compression, which is based on the same idea).</p>
+                  <p>For object-based compression to be efficient, objects need to be identified. Obviously two successive reports
+                      from the same car in a navigation system, to take an example (and even more two successive instructions to the
+                      same driver), differ much less than data from and to different cars. That's why Spiderwiz introduces
+                      <em>object hierarchy</em> and
+                      <a href="../../../../org/spiderwiz/core/DataObject.html#getObjectID--">
+                          <em>object IDs</em></a> and developers are encouraged to use it as much as possible, even if the object is
+                          <a href="../../../../org/spiderwiz/core/DataObject.html#isDisposable--"><em>
+                              disposable</em></a>.</p>
+                  <h2>How to Control Data Compression</h2>
+                  <p>You can use <a href="config.html#CompressionConfig">Application Configuration</a> to control data compression for individual communication channels. The <code>compress</code> parameter determines how compression is done on the related channel. The options are:</p>
+                <div class="indent"><code>no</code> (or anything that starts with it) - no compression (the default for disk file input/output).<br>
+                      <code>zip</code> - physical compression using <em>GZIP</em>. <br>
+                      <code>logical</code> - object-based compression. <br>
+                      <code>full</code> - both physical and logical compression (the default for all communication types except disk file input/output). </div>
+                <p>Additionally, as a programmer developing a
+                      <a href="../../../../org/spiderwiz/core/Channel.html">
+                          <em>communication plugin</em></a>, you can override
+                          <a href="../../../../org/spiderwiz/core/Channel.html#isCompressable--">
+                              <code>Channel.isCompressable()</code></a>
+                          to determine whether or not compression (in both tiers) applies to the channel by default.</p>
+                  <p>Note that compression is always a full-duplex operation. If any type of compression is used in one communication
+                      direction, it must also be used in the other direction. Therefore if compression configuration tags are used as
+                      we have just explained and different tags are used for each direction, the actual compression that will be
+                      performed is the common denominator. For instance, if <code>zip</code> compression is configured in one
+                      direction and <code>logical</code>
+                      compression is configured in the opposite direction, <code>no</code> compression will take place. </p>
+              </div>
+            </div>
+        </div>
+    </body>
+</html>

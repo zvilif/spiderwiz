@@ -1,0 +1,125 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/New/!svn/ver/155/Spiderwiz/src/main/java/org/spiderwiz/zutils
+END
+ZDictionary.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/New/!svn/ver/2/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZDictionary.java
+END
+ZConfig.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZConfig.java
+END
+Ztrings.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/Ztrings.java
+END
+ZThread.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZThread.java
+END
+ZBuffer.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZBuffer.java
+END
+ZArrayList.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/New/!svn/ver/2/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZArrayList.java
+END
+ZUtilities.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZUtilities.java
+END
+ZDate.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZDate.java
+END
+ZLog.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/New/!svn/ver/2/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZLog.java
+END
+ZHashMap.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/New/!svn/ver/107/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZHashMap.java
+END
+ZMail.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZMail.java
+END
+ZSMTPMail.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/New/!svn/ver/155/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZSMTPMail.java
+END
+ZLock.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZLock.java
+END
+package-info.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/New/!svn/ver/2/Spiderwiz/src/main/java/org/spiderwiz/zutils/package-info.java
+END
+ZModerator.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/New/!svn/ver/131/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZModerator.java
+END
+ZDispenser.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZDispenser.java
+END
+ZModInteger.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/New/!svn/ver/2/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZModInteger.java
+END
+ZHashSet.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/New/!svn/ver/155/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZHashSet.java
+END
+ZTrigger.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/New/!svn/ver/194/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZTrigger.java
+END
+ZHtml.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/New/!svn/ver/155/Spiderwiz/src/main/java/org/spiderwiz/zutils/ZHtml.java
+END
