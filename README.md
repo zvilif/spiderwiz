@@ -1,18 +1,16 @@
 # Spiderwiz
-<b><i>Spiderwiz</i></b> is an open-source programming model and runtime that dramatically accelerates the development, deployment, management, maintenance and performance of distributed data processing systems.
+<strong><em>Spiderwiz</em></strong> is an open-source programming model and runtime that dramatically accelerates the development, maintenance and performance of distributed data processing systems.
 
-The framework is based on the principle of a single data plane shared between multiple compute units. Its power comes from the concept that programmers need not write <b>a single line of code</b> in order for that share to happen. Instead of their modules striving to reach the data, it is <b>the data that reaches them</b>.
+The programming model is based on the concept of a single data plane shared between multiple compute units. Its power comes from the fact that programmers need not write <strong>a single line of code</strong> in order for that share to happen. Instead of spending the lion share of their life dealing with data serialization, interfaces, service discovery, pub-sub, network protocols and all those thorns of the distributed data processing world, they can concentrate on what they are hired for – achieving their goals.
 
-That means that instead of programmers that spend the lion share of their life dealing with APIs, service discovery, pub-sub, databases, network protocols and all those goodies of the distributed data processing world, they can concentrate on what they are hired for – achieving their goals.
-
-# <h2>spiderwiz.org</h2>
+## spiderwiz.org
 For full information about the project, including documentation, tutorials, blog articles etc. go to the project website <a href=http://spiderwiz.org>www.spiderwiz.org</a>.
 
-# <h2>Documentation</h2>
+## Modules
+The published part of the project comprises two modules (artifacts) - [spiderwiz-core](https://github.com/zvilif/spiderwiz/tree/master/spiderwiz-core "spiderwiz-core"), which includes the core functionality of the framework, and [spiderwiz-websocket](https://github.com/zvilif/spiderwiz/tree/master/spiderwiz-websocket "spiderwiz-websocket"), a dependency that a Spiderwiz-based application shall define if it needs to act as a WebSocket server. See the respective README files of the two modules.
+## Documentation
 A full Javadoc of the project can be found <a href="http://spiderwiz.org/web/docs/apidocs/">here</a>.
 
-# <h2>Versions</h2>
-<ul>
-  <li>Version 2.3: initial published version.</li>
-    <li>Version Z4.00: Full published version, separated to modules.</li>
-</ul>
+## Versions
+- Version 2.3: initial published version.
+- Version Z4.00: Full published version, separated to modules.
