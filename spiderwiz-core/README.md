@@ -1,5 +1,5 @@
 # spiderwiz-core
-Contains the source code of the `spiderwiz-core` library that implements the core functionality of the *Spiderwiz* framework. For a full documentation see the project's [Javadoc](http://spiderwiz.org/web/docs/apidocs/ "Javadoc").
+Contains the source code of the `spiderwiz-core` library that implements the core functionality of the *Spiderwiz* framework. For a full documentation see the project's [Javadoc](http://spiderwiz.org/docs/apidocs/ "Javadoc").
 
 ##  Usage
 The library can be used as a [Maven](http://maven.apache.org/ "Maven") dependency, as follows:
