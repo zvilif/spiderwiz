@@ -10,7 +10,7 @@ The library can be used as a [Maven](http://maven.apache.org/ "Maven") dependenc
   	<version>1.2</version>
 </dependency>
 ```
-Non-Maven users can download the above mentioned jars directly from [http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-websocket-server/1.2/spiderwiz-websocket-server-1.2.jar](http://spiderwiz.org/web/repo/org/spiderwiz/spiderwiz-websocket-server/1.2/spiderwiz-websocket-server-1.2.jar "http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-websocket-server/1.2/spiderwiz-websocket-server-1.2.jar").
+Non-Maven users can download the above mentioned jars directly from [http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-websocket-server/1.2/spiderwiz-websocket-server-1.2.jar](http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-websocket-server/1.2/spiderwiz-websocket-server-1.2.jar "http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-websocket-server/1.2/spiderwiz-websocket-server-1.2.jar").
 
 ## Versions
 - Version Z4.00: Full published version, separated to modules.
