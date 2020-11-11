@@ -10,7 +10,7 @@ The library can be used as a [Maven](http://maven.apache.org/ "Maven") dependenc
     <version>4.0</version>
 </dependency>
 ```
-Non-Maven users can download the above mentioned jars directly from [http://spiderwiz.org/web/repo/org/spiderwiz/spiderwiz-core/4.0/spiderwiz-core-4.0.jar](http://spiderwiz.org/web/repo/org/spiderwiz/spiderwiz-core/4.0/spiderwiz-core-4.0.jar "http://spiderwiz.org/web/repo/org/spiderwiz/spiderwiz-core/4.0/spiderwiz-core-4.0.jar").
+Non-Maven users can download the above mentioned jars directly from [http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-core/4.0/spiderwiz-core-4.0.jar](http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-core/4.0/spiderwiz-core-4.0.jar "http://spiderwiz.org/repo/org/spiderwiz/spiderwiz-core/4.0/spiderwiz-core-4.0.jar").
 
 ## Versions
 - Version 2.3: initial published version.
