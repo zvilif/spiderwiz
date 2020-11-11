@@ -9,7 +9,7 @@ For full information about the project, including documentation, tutorials, blog
 ## Modules
 The published part of the project comprises two modules (artifacts) - [spiderwiz-core](https://github.com/zvilif/spiderwiz/tree/master/spiderwiz-core "spiderwiz-core"), which includes the core functionality of the framework, and [spiderwiz-websocket](https://github.com/zvilif/spiderwiz/tree/master/spiderwiz-websocket "spiderwiz-websocket"), a dependency that a Spiderwiz-based application shall define if it needs to act as a WebSocket server. See the respective README files of the two modules.
 ## Documentation
-A full Javadoc of the project can be found <a href="http://spiderwiz.org/docs/apidocs/">here</a>.
+A full Javadoc of the project can be found <a href="http://spiderwiz.org/apidocs/">here</a>.
 
 ## Versions
 - Version 2.3: initial published version.
