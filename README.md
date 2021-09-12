@@ -14,3 +14,4 @@ A full Javadoc of the project can be found <a href="http://spiderwiz.org/apidocs
 ## Versions
 - Version 2.3: initial published version.
 - Version Z4.00: Full published version, separated to modules.
+- Version 4.3: many bug fixes and additions
