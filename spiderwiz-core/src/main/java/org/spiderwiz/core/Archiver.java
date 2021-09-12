@@ -21,7 +21,7 @@ import org.spiderwiz.zutils.ZUtilities;
 
 /**
  * Handles data object archiving and restoration
- * @author Zvi 
+ * @author zvil
  */
 class Archiver {
     private class ObjectRecord {

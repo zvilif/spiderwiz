@@ -19,7 +19,7 @@ import org.spiderwiz.zutils.Ztrings;
 
 /**
  * This class is a singleton that handles all core communication and hub functionality of Spiderwiz.
- * @author Zvi 
+ * @author zvil
  */
 final class Hub {
     /**

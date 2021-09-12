@@ -4,7 +4,7 @@ import org.spiderwiz.zutils.ZDate;
 
 /**
  *
- * @author Zvi 
+ * @author zvil
  */
 class StatisticInfo extends Statistics {
     protected final static int IN = 0;

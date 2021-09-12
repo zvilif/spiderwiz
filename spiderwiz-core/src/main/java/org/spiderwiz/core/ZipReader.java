@@ -7,7 +7,7 @@ import java.util.zip.Inflater;
 
 /**
  *
- * @author Zvi 
+ * @author zvil
  */
 final class ZipReader extends InputStream {
     private final InputStream in;

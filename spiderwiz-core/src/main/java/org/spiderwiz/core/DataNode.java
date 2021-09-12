@@ -13,7 +13,7 @@ import org.spiderwiz.zutils.ZLog;
 /**
  * implement server channel handling
  *
- * @author Zvi 
+ * @author zvil
  */
 class DataNode {
     private class DataChannels extends ZArrayList<DataHandler> {}

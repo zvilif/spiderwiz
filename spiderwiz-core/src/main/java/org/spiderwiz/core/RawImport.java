@@ -5,7 +5,7 @@ import org.spiderwiz.zutils.ZDate;
 
 /**
  * The class supports delivery of original import command and import identifier.
- * @author Zvi 
+ * @author zvil
  */
 class RawImport extends DataObject {
     public final static String ObjectCode = Main.ObjectCodes.RawImport;

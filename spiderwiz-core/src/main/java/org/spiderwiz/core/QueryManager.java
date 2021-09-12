@@ -9,7 +9,7 @@ import org.spiderwiz.zutils.ZDate;
 /**
  * Manages the traffic of query objects (objects derived from QueryObject).
  * This class is derived from ZThread, i.e. it runs on a loop in its own thread. 
- * @author Zvi 
+ * @author zvil
  */
 final class QueryManager {
     /**

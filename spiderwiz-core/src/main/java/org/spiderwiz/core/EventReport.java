@@ -6,7 +6,7 @@ import org.spiderwiz.zutils.ZUtilities;
 
 /**
  * Handles events reported by remote nodes
- * @author Zvi 
+ * @author zvil
  */
 class EventReport extends DataObject {
     public final static String ObjectCode = Main.ObjectCodes.EventReport;

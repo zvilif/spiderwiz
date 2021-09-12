@@ -9,7 +9,7 @@ import org.spiderwiz.zutils.ZLog;
 
 /**
  * Acts as a server that accepts all kind of connections from clients.
- * @author Zvi 
+ * @author zvil
  */
 final class ServerChannelHandler {
     private final DataNode initiatingNode;

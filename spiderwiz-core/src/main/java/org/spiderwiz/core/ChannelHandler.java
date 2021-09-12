@@ -4,7 +4,7 @@ import org.spiderwiz.zutils.ZDate;
 
 /**
  * Objects implementing this interface are used in conjuction with Channel to provide channel and event handling.
- * @author Zvi 
+ * @author zvil
  */
 abstract class ChannelHandler {
 

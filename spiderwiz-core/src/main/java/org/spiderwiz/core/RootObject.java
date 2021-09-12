@@ -2,7 +2,7 @@ package org.spiderwiz.core;
 
 /**
  * Provide the root for storing the entire object hierarchy.
- * @author Zvi 
+ * @author zvil
  */
 class RootObject extends DataObject{
     public static String ObjectCode = null;

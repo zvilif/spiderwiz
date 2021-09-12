@@ -4,7 +4,7 @@ import org.spiderwiz.zutils.ZBuffer;
 
 /**
  * Manage all sort of asynchronous events
- * @author Zvi 
+ * @author zvil
  */
 class EventDispatcher extends Dispenser<EventDispatcher.Event> {
     abstract class Event {

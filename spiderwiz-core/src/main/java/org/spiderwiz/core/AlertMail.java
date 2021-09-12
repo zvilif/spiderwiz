@@ -8,7 +8,7 @@ import org.spiderwiz.zutils.ZMail;
 import org.spiderwiz.zutils.ZSMTPMail;
 
 /**
- * @author Zvi 
+ * @author zvil
  */
 class AlertMail {
 
