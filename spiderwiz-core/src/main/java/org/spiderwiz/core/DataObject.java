@@ -50,6 +50,7 @@ import org.spiderwiz.zutils.Ztrings;
      * <li>Custom object serialization/deserialization.</li>
      * <li>Some other actions that can be done on a data object.</li>
      * </ul>
+ * @author  zvil
 
  */
 @org.spiderwiz.annotation.WizObject
