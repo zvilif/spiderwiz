@@ -4,7 +4,7 @@ import org.spiderwiz.zutils.ZModerator;
 
 /**
  * Moderates action rate according to value in settings.dat. Usually used for moderation of transmission over the network
- * @author zvil
+ * @author @author  zvil
  */
 class TransmitModerator extends ZModerator{
     private int explicitRate = -1;

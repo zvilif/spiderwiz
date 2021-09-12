@@ -28,7 +28,7 @@ import org.spiderwiz.zutils.ZDictionary;
 
 /**
  * Do data object serialization and deserialization
- * @author zvil
+ * @author @author  zvil
  */
 class Serializer {
     private static Serializer myInstance = null;

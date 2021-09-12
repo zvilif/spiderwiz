@@ -20,7 +20,7 @@ import org.spiderwiz.zutils.Ztrings;
 
 /**
  * Handles the socket by which a data server is connected to the Gateway Server.
- * @author zvil
+ * @author @author  zvil
  */
 final class DataHandler extends ChannelHandler {
     /**

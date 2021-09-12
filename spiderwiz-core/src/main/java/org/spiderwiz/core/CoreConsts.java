@@ -2,7 +2,7 @@ package org.spiderwiz.core;
 
 /**
  * Global constants
- * @author zvil
+ * @author @author  zvil
  */
 class CoreConsts {
     public static final String NO_CONFIG_FILE = "Could not open configuration file %1$s";

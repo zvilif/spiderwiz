@@ -7,7 +7,7 @@ import java.util.zip.Deflater;
 /**
  * class that implements writing to a stream with optional compression
  *
- * @author zvil
+ * @author @author  zvil
  */
 final class ZipWriter extends OutputStream {
 

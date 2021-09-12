@@ -10,7 +10,7 @@ import org.spiderwiz.zutils.Ztrings;
 
 /**
  * Top object that manages or redirect data.
- * @author zvil
+ * @author @author  zvil
  */
 final class DataManager {
     /**

@@ -9,7 +9,7 @@ import org.spiderwiz.zutils.ZHashMap;
 
 /**
  * Handles all import Server connections
- * @author zvil
+ * @author @author  zvil
  */
 class ImportManager {
     private class ImportChannels extends ZHashMap<String, ImportHandler> {}

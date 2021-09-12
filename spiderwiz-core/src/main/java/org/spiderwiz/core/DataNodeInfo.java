@@ -12,7 +12,7 @@ import org.spiderwiz.zutils.ZDate;
 
 /**
  *
- * @author zvil
+ * @author @author  zvil
  */
 class DataNodeInfo extends StatisticInfo {
     private final static int COMPRESSED = 2;

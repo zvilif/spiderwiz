@@ -21,7 +21,7 @@ import org.spiderwiz.zutils.ZUtilities;
 /**
  * Implement a pipe of Strings between two processes kept in memory up to a size limit and backed by the file system for unlimited size.
  * The pipe is persistent through sessions.
- * @author zvil
+ * @author @author  zvil
  */
 class LosslessPipe implements ZDispenser<LosslessPipe.PipeBlock>{
     public class PipeBlock {

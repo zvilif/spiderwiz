@@ -9,7 +9,7 @@ import org.spiderwiz.zutils.ZUtilities;
 
 /**
  *
- * @author zvil
+ * @author @author  zvil
  */
 class MyConfig extends ZConfig{
     public static final String APP_UUID = "application uuid";
