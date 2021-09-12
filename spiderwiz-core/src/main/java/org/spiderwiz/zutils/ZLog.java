@@ -133,29 +133,33 @@ public class ZLog {
      * Logs one line in a log file with the current time as a timestamp.
      * @param line      the line to log.
      * @param keepSame  if true writes to the same file as the previous commit even though the hour has changed since then.
+     * @return this object
      * @see #commit(java.util.Date, java.lang.String, java.lang.String, boolean) commit()
      */
-    public void log (String line, boolean keepSame) {
+    public ZLog log (String line, boolean keepSame) {
         try {
             commit (new Date(), "", line, false);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return this;
     }
     
     /**
      * Formats a line using the given format string and arguments and writes it to a log file with the current time as a timestamp.
      * @param fmt   the given format string.
      * @param args  the given arguments.
+     * @return this object
      * @see #log(java.lang.String, boolean) log()
      */
-    public synchronized void logf (String fmt, Object ... args) {
+    public synchronized ZLog logf (String fmt, Object ... args) {
         try {
             commit(new Date(), "", String.format(fmt, args), false);
         } catch (Exception ex) {
             ex.printStackTrace();
 
         }
+        return this;
     }
 
     /**
@@ -163,9 +167,10 @@ public class ZLog {
      * and flushes the file.
      * @param fmt   the given format string.
      * @param args  the given arguments.
+     * @return this object
      * @see #logf(java.lang.String, java.lang.Object...) logf()
      */
-    public synchronized void logNow (String fmt, Object ... args) {
+    public synchronized ZLog logNow (String fmt, Object ... args) {
         try {
             commit(new Date(), "", String.format(fmt, args), false);
             if (logFile != null)
@@ -174,6 +179,7 @@ public class ZLog {
             ex.printStackTrace();
 
         }
+        return this;
     }
 
     /**
@@ -181,9 +187,10 @@ public class ZLog {
      * flushes the file and also writes the line to the console.
      * @param fmt   the given format string.
      * @param args  the given arguments.
+     * @return this object
      * @see #logNow(java.lang.String, java.lang.Object...) logNow()
      */
-    public synchronized void logEvent (String fmt, Object ... args) {
+    public synchronized ZLog logEvent (String fmt, Object ... args) {
         try {
             System.out.printf(fmt, args);
             System.out.println();
@@ -192,23 +199,25 @@ public class ZLog {
                 logFile.flush();
         } catch (Exception ex) {
             ex.printStackTrace();
-
         }
+        return this;
     }
     
     /**
      * Calls {@link #logEvent(java.lang.String, java.lang.Object...) logEvent()} to log an event with the given exception as text,
      * then follows it in the file and on the console by the stack trace of the exception.
      * @param ex    the given exception.
+     * @return this object
      * @see #logEvent(java.lang.String, java.lang.Object...) logEvent()
      */
-    public synchronized void logException (Throwable ex) {
+    public synchronized ZLog logException (Throwable ex) {
         logEvent(ex.toString());
         ex.printStackTrace();
         if (logFile != null) {
             ex.printStackTrace(logFile);
             logFile.flush();
         }
+        return this;
     }
 
     /**

@@ -29,7 +29,6 @@ public class ZDictionary extends ZHashMap<String, String> {
      * The parameter is a list of pairs <em>key</em>=<em>value</em> concatenated by a semicolon (;). The assignment is optional. The
      * list may contain keys that are not assigned to values, in which case the returned dictionary maps the keys to {@code null}.
      * <p>
-     * All keys in the returned dictionary are converted to lowercase.
      * @param parList   parameter list in the format "<em>key1</em>=<em>value1</em>;<em>key2</em>=<em>value2</em>;..."
      * @return a dictionary object that maps keys (converted to lowercase) to values.
      */
@@ -43,7 +42,7 @@ public class ZDictionary extends ZHashMap<String, String> {
             String key = pair[0];
             if (key != null && !key.isEmpty()) {
                 String val = pair.length < 2 ? null : pair[1];
-                parMap.put(key.toLowerCase(), val);
+                parMap.put(key, val);
             }
         }
         return parMap;

@@ -123,7 +123,7 @@ class DataNode {
     ) throws IOException {
         try {
             // Check whether this is a query reply
-            boolean reply = QueryObject.isReply(prefix, objectValues);
+            boolean reply = QueryObject.isQueryReply(prefix, objectValues);
             allChannels.lockRead();
             for (DataHandler channel : allChannels) {
                 if (compareChannel(channel, originChannel))

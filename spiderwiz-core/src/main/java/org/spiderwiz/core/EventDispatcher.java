@@ -24,7 +24,7 @@ class EventDispatcher extends Dispenser<EventDispatcher.Event> {
         protected void fire() {
             try {
                 // If onAsyncEvent returns false don't acknowledge lossless objects
-                if (!obj.isObsolete() && !obj.onAsyncEvent())
+                if (!obj.onAsyncEvent())
                     seq = null;
             } finally {
                 if (seq != null)

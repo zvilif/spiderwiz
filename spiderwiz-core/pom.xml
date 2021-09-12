@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.spiderwiz</groupId>
     <artifactId>spiderwiz-core</artifactId>
-    <version>4.0</version>
+    <version>4.3</version>
     <packaging>jar</packaging>
     
     <name>spiderwiz-core</name>
@@ -21,7 +21,7 @@
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>http://spiderwiz.org/project/index.php/license-terms/</url>
+            <url>http://spiderwiz.org/project/license-terms/</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -53,7 +53,7 @@
                     </links>
                     <bottom>
                         Copyright © 2020, spiderwiz.org. All rights reserved. Use is subject to
-                        &lt;a href="http://spiderwiz.org/web/project/license-terms/"&gt;license terms&lt;/a&gt;.
+                        &lt;a href="http://spiderwiz.org/project/license-terms/"&gt;license terms&lt;/a&gt;.
                     </bottom>
                 </configuration>
                 <!-- Used only for releasing to Maven Central

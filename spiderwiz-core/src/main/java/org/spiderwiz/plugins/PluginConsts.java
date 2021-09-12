@@ -9,6 +9,7 @@ public class PluginConsts {
     
     public static class WebSocket {
         public static final String WEBSOCKET_SCHEMA = "ws:";
+        public static final String WSS_SCHEMA = "wss:";
         public static final String WEBSOCKET_CLIENT = "WebSocket client";
         public static final String WEBSOCKET = "websocket";
         static final String NO_URI = "No URI specified for WebSocket %1$s-%2$d";

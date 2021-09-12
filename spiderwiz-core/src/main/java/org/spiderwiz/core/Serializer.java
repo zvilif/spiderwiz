@@ -438,7 +438,7 @@ class Serializer {
     private boolean isXmlType(Class cl)  {
         try {
             return cl.isAnnotationPresent(XmlType.class);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             return false;
         }
     }
@@ -576,7 +576,7 @@ class Serializer {
     private ZDate deserializeZDate(String val, String format, boolean ignoreZone) throws ParseException {
         String f = format.isEmpty() ? ZDate.TIMESTAMP : format;
         val = unescapeDelimiters(val);
-        return ignoreZone ? ZDate.parseTime(val, format, null) : ZDate.parseGMTtime(val, f);
+        return ignoreZone ? ZDate.parseTime(val, f, null) : ZDate.parseGMTtime(val, f);
     }
     
     private Number deserializeNumber(String val, Class cl) throws Exception

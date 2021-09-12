@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -49,6 +50,25 @@ class Archiver {
     }
     
     private class ObjectBuffer extends ArrayList<ObjectRecord> {
+        private int reserved = 0;
+
+        /**
+         * Called to reserve the buffer for a subsequent archive() call. The caller sync on allBuffers before calling this to
+         * prevent a race situation.
+         */
+        void reserve() {
+            ++reserved;
+        }
+        
+        /**
+         * Call to release the buffer after adding a record to it with archive(). We sync on allBuffers to prevent a race situation.
+         */
+        void release() {
+            synchronized(allBuffers){
+                --reserved;
+            }
+        }
+        
         /**
          * Add the values of an object to the buffer.
          * @param path          The path that determines the location of the object in the archive hierarchy
@@ -63,16 +83,29 @@ class Archiver {
             add(new ObjectRecord(prefix, objectCode, keyValues, fieldValues, time));
             if (needsActivation)
                 activationBuffer.add(path);
+            release();
+        }
+
+        /**
+         * Call if the buffer is empty to delete it. Before deletion, we check if the buffer is not reserved by another thread.
+         * @param path  The path that determines the location of the object in the archive hierarchy
+         */
+        void deleteIfNotReserved(String path) {
+            synchronized(allBuffers){
+                if (reserved == 0)
+                    allBuffers.remove(path);
+            }
         }
         
         /**
          * Flush the buffer to disk
          * @param path          The path that determines the location of the object in the archive hierarchy
-         * @return true if there was data to flush, false if the buffer is empty
          */
-        synchronized boolean flush(String path) {
-            if (isEmpty())
-                return false;
+        synchronized void flush(String path) {
+            if (isEmpty()) {
+                deleteIfNotReserved(path);
+                return;
+            }
             String filePath = null;
             PrintWriter writer = null;
             try {
@@ -94,7 +127,7 @@ class Archiver {
                         OutputStream stream = new FileOutputStream(file, true);
                         if (isZipped(file))
                             stream = new GZIPOutputStream(stream);
-                        writer = new PrintWriter (stream);
+                        writer = new PrintWriter (new OutputStreamWriter (stream, UTF8));
                     }
                     obj.writeToArchive(writer);
                 }
@@ -107,7 +140,6 @@ class Archiver {
             // if the list is empty the object will be removed.
             clear();
             activationBuffer.add(path);
-            return true;
         }
     }
     
@@ -123,15 +155,17 @@ class Archiver {
                 objBuffer = allBuffers.get(path);
             }
             
-            // Flush the buffer. If it was empty delete it from allBuffers list.
-            if (objBuffer != null && !objBuffer.flush(path))
-                removeObjectBuffer(path);
+            // Flush the buffer.
+            if (objBuffer != null)
+                objBuffer.flush(path);
         }
     }
     
     private final AllObjectBuffers allBuffers;
     private final ZBuffer<String> activationBuffer;
     private boolean initiated = false;
+    
+    private static final String UTF8 = "UTF-8";
 
     public Archiver() {
         allBuffers = new AllObjectBuffers();
@@ -143,12 +177,6 @@ class Archiver {
         if (!initiated) {
             initiated = true;
             activationBuffer.execute();
-        }
-    }
-    
-    private void removeObjectBuffer(String path) {
-        synchronized(allBuffers){
-            allBuffers.remove(path);
         }
     }
     
@@ -170,6 +198,7 @@ class Archiver {
                 objBuffer = new ObjectBuffer();
                 allBuffers.put(path, objBuffer);
             }
+            objBuffer.reserve();
         }
         objBuffer.archive(path, time, prefix, objectCode, keyValues, fieldValues);
     }
@@ -214,7 +243,7 @@ class Archiver {
         InputStream stream = new FileInputStream(file);
         if (isZipped(file))
             stream = new GZIPInputStream(stream);
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream, UTF8))) {
             String line;
             while ((line = in.readLine()) != null) {
                 String fields[] = line.split(",", 4);
@@ -227,8 +256,8 @@ class Archiver {
                 String code = fields[0].substring(1);         // strip the prefix
                 if (!code.equals(objectCode))
                     continue;
-                DataObject obj = DataManager.getInstance().parseObject(prefix, code, fields.length < 2 ? null : fields[2],
-                    fields.length < 3 ? null : fields[3], null, Main.getInstance().getAppUUID());
+                DataObject obj = DataManager.getInstance().parseObject(prefix, code, fields.length < 3 ? null : fields[2],
+                    fields.length < 4 ? null : fields[3], null, Main.getInstance().getAppUUID());
                 if (obj != null) {
                     ++count;
                     obj.setCommandTs(ts);
@@ -276,7 +305,7 @@ class Archiver {
         if (from == null)
             return 0;
         if (until == null)
-            until = ZDate.now();
+            until = ZDate.now().add(field, 1);
         for (ZDate date = from; !date.after(until); date = date.add(field, 1)) {
             int n = restorePath(objectCode, associated, from, until, resolvePath(path, date));
             if (n < 0)
@@ -306,8 +335,16 @@ class Archiver {
      * @param path 
      * @return true if file successfully deleted
      */
-    boolean deleteArchiveFile(String path) {
-        return new File(path).delete();
+    boolean deleteArchiveFile(String path) throws IOException {
+        File file = new File(path);
+        if (file.delete()) {
+            // If an archive folder becomes empty, delete the folder
+            while ((file = file.getParentFile()) != null && ZUtilities.isFolderEmpty(file.toPath())) {
+                file.delete();
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -321,6 +358,10 @@ class Archiver {
     boolean deleteByTime(String objectCode, ZDate from, ZDate until, String path) throws Exception {
         int field = determineTimeSteps(path);
         boolean result = true;
+        if (from == null)
+            from = MyUtilities.findDateOfOldestFile(Main.getMyConfig().getArchiveFolder());
+        if (from == null)
+            return true;
         if (until == null)
             until = ZDate.now();
         for (ZDate date = from; date.before(until); date = date.add(field, 1)) {

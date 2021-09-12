@@ -1,6 +1,5 @@
 package org.spiderwiz.core;
 
-import java.lang.reflect.Constructor;
 import org.spiderwiz.zutils.ZDate;
 import org.spiderwiz.zutils.ZDictionary;
 import org.spiderwiz.zutils.ZHtml;
@@ -79,5 +78,27 @@ class AlertMail {
         } catch (Exception ex) {
             Main.getLogger().logException(ex);
         }
+    }
+    
+    /**
+     * Sends a mail according to the given parameters.
+     * @param from          the mail address of the sender.
+     * @param to            the mail address(es) of the addressee(s).
+     * @param cc            if not null, sends a carbon copy to the specified address(es).
+     * @param subject       the mail subject or null if there is no subject.
+     * @param body          the mail body or null if there is no body.
+     * @param html          true if the message shall be sent in HTML format, false if it shall be sent as plain text.
+     * @param highPriority  true if the message shall be flagged as high priority.
+     * @throws Exception
+     */
+    boolean sendGeneralMail(String from, String to, String cc, String subject, String body, boolean html, boolean highPriority)
+        throws Exception
+    {
+        String configString = config.getProperty(MyConfig.MAIL_SYSTEM);
+        if (configString == null)
+            return false;
+        zmail.configure(ZDictionary.parseParameterList(configString));
+        zmail.send(from, to, cc, subject, body, html, highPriority);
+        return true;
     }
 }

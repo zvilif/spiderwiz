@@ -123,18 +123,134 @@ public abstract class DataObject {
         }
     }
     
+    private class StateManager {
+        private String objectID = "";
+        private DataObject parent = null;
+        private UUID originUUID = null;
+        private String userID = null;
+        private DataHandler dataChannel = null;
+        private String rawCommand = null;
+        private ZDate objectTime;
+        private boolean removed = false;
+        private String rename = null;
+        private Collection<UUID> destinations = null;
+
+        public StateManager(ZDate objectTime) {
+            this.objectTime = objectTime;
+        }
+
+        synchronized String getObjectID() {
+            return objectID;
+        }
+
+        synchronized void setObjectID(String objectID) {
+            this.objectID = objectID;
+        }
+
+        synchronized DataObject getParent() {
+            return parent;
+        }
+
+        synchronized void setParent(DataObject parent) {
+            this.parent = parent;
+        }
+
+        synchronized UUID getOriginUUID() {
+            return originUUID;
+        }
+
+        synchronized void setOriginUUID(UUID originUUID) {
+            this.originUUID = originUUID;
+        }
+
+        synchronized String getUserID() {
+            return userID;
+        }
+
+        synchronized void setUserID(String userID) {
+            this.userID = userID;
+        }
+
+        synchronized DataHandler getDataChannel() {
+            return dataChannel;
+        }
+
+        synchronized void setDataChannel(DataHandler dataChannel) {
+            this.dataChannel = dataChannel;
+            userID = dataChannel.getAppUser();
+        }
+
+        synchronized String getRawCommand() {
+            return rawCommand;
+        }
+
+        synchronized void setRawCommand(String rawCommand) {
+            this.rawCommand = rawCommand;
+        }
+
+        synchronized ZDate getObjectTime() {
+            return objectTime;
+        }
+
+        synchronized void setObjectTime(ZDate objectTime) {
+            this.objectTime = objectTime;
+        }
+
+        synchronized boolean isObsolete() {
+            return removed || rename != null; 
+        }
+
+        synchronized void setRemoved(boolean removed) {
+            this.removed = removed;
+        }
+
+        synchronized String getRename() {
+            return rename;
+        }
+
+        synchronized void setRename(String rename) {
+            this.rename = rename;
+        }
+
+        synchronized DataObject delete() {
+            removed = true;
+            return parent;
+        }
+    
+        synchronized DataObject undelete() {
+            removed = false;
+            return parent;
+        }
+        
+        synchronized String getNewID() {
+            return rename != null ? rename : removed ? "" : null;
+        }
+
+        synchronized Collection<UUID> getDestinations() {
+            return destinations;
+        }
+
+        synchronized void setDestinations(Collection<UUID> destinations) {
+            this.destinations = destinations;
+        }
+
+        synchronized String getFullKey() {
+            StringBuilder key = new StringBuilder();
+            if (parent != null)
+                key.append(parent.getFullKey());
+            if (getObjectID() != null) {
+                if (key.length() > 0)
+                    key.append(Serializer.BAR_SEPARATOR);
+                key.append(Serializer.escapeDelimiters(getObjectID()));
+            }
+            Serializer.removeTrailingDelimiters(key, 0, Serializer.BAR_SEPARATOR);
+            return key.toString();
+        }
+    }
+    
     private String objectCode = null;
-    private String objectID = "";
-    private DataObject parent = null;
     private final ChildMap childMap;
-    private DataHandler dataChannel = null;
-    private boolean removed = false;
-    private String rename = null;
-    private String rawCommand = null;
-    private ZDate objectTime;
-    private UUID originUUID = null;
-    private String userID = null;
-    private Collection<UUID> destinations = null;
+    private final StateManager stateManager;
 
     /**
      * Constructs a <em>data object</em>.
@@ -146,7 +262,7 @@ public abstract class DataObject {
      */
     protected DataObject() {
         childMap = new ChildMap();
-        objectTime = ZDate.now();
+        stateManager = new StateManager(ZDate.now());
     }
     
     /**
@@ -215,8 +331,8 @@ public abstract class DataObject {
      * Returns the UUID of the object producer.
      * @return the UUID of the application that originated the object.
      */
-    public final synchronized UUID getOriginUUID() {
-        return originUUID;
+    public final UUID getOriginUUID() {
+        return stateManager.getOriginUUID();
     }
 
     /**
@@ -228,8 +344,8 @@ public abstract class DataObject {
      * associate a user ID to a network channel). Use this method to get the associated user ID and deal with it programmatically.
      * @return a user ID or null if none is associated.
      */
-    public synchronized String getUserID() {
-        return userID;
+    public String getUserID() {
+        return stateManager.getUserID();
     }
 
     /**
@@ -241,8 +357,8 @@ public abstract class DataObject {
      * associate a user ID to a network channel).
      * @param userID    the user ID to attach to the object.
      */
-    public synchronized void setUserID(String userID) {
-        this.userID = userID;
+    public void setUserID(String userID) {
+        stateManager.setUserID(userID);
     }
 
     /**
@@ -256,8 +372,8 @@ public abstract class DataObject {
      * {@link #isCaseSensitive()} to make them insensitive.
      * @return the object ID.
      */
-    public synchronized String getObjectID() {
-        return objectID;
+    public String getObjectID() {
+        return stateManager.getObjectID();
     }
 
     /**
@@ -266,8 +382,8 @@ public abstract class DataObject {
      * Get the parent of this object in the data object tree. If this is a top level object, the method returns null.
      * @return the parent object of this object or null.
      */
-    public synchronized final DataObject getParent() {
-        return parent;
+    public final DataObject getParent() {
+        return stateManager.getParent();
     }
 
     /**
@@ -280,7 +396,7 @@ public abstract class DataObject {
      * @throws java.lang.NoSuchFieldException       if the class <em>type</em> does not contain a static <em>ObjectCode</em> field.
      * @throws java.lang.IllegalAccessException     if <em>ObjectCode</em> field of class <em>type</em> is not public.
      */
-    public final <T extends DataObject> T getChild(Class<T> type, String id) throws NoSuchFieldException, IllegalAccessException {
+    public <T extends DataObject> T getChild(Class<T> type, String id) throws NoSuchFieldException, IllegalAccessException {
         return type.cast(getChild(getObjectCode(type), id));
     }
     
@@ -300,7 +416,7 @@ public abstract class DataObject {
      * @throws java.lang.NoSuchFieldException       if the class <em>type</em> does not contain a static <em>ObjectCode</em> field.
      * @throws java.lang.IllegalAccessException     if <em>ObjectCode</em> field of class <em>type</em> is not public.
      */
-    public final <T extends DataObject> T createChild(Class<T> type, String id)
+    public <T extends DataObject> T createChild(Class<T> type, String id)
         throws NoSuchFieldException, IllegalAccessException
     {
         String code = getObjectCode(type);
@@ -314,8 +430,8 @@ public abstract class DataObject {
             return null;
         if (id != null && !object.isCaseSensitive())
             id = id.toLowerCase();
-        object.objectID = id == null ? "" : id;
-        object.parent = this;
+        object.setObjectID(id == null ? "" : id);
+        object.setParent(this);
         if (object.getObjectID() != null && !object.isDisposable() && !Main.getMyConfig().isPropertySet(MyConfig.PASS_THROUGH))
             storeChild(object);
         return type.cast(object);
@@ -330,7 +446,7 @@ public abstract class DataObject {
      * @return the removed object. If the object is not removable because it is {@link #isDisposable() disposable} or
      * it has already been removed then return null.
      */
-    public final DataObject remove() {
+    public DataObject remove() {
         if (!isObsolete() && !isDisposable()) {
             delete();
             return this;
@@ -351,7 +467,7 @@ public abstract class DataObject {
      * @param newID     new object ID
      * @return          the obsolete renamed object or null if the object could not be renamed.
      */
-    public final DataObject rename(String newID) {
+    public DataObject rename(String newID) {
         if (getParent() != null && !isDisposable() && newID != null && !newID.isEmpty()) {
             if (!isCaseSensitive())
                 newID = newID.toLowerCase();
@@ -380,7 +496,7 @@ public abstract class DataObject {
      * @param filter    an implementation-specific extension of the {@link org.spiderwiz.core.Filter} object.
      * @return          a collection of objects of the type of the filter that pass through the filter.
      */
-    public final <T extends DataObject> List<T> getFilteredChildren(Filter<T> filter) {
+    public <T extends DataObject> List<T> getFilteredChildren(Filter<T> filter) {
         if (filter == null)
             return null;
         ArrayList<T> collection = new ArrayList<>();
@@ -452,7 +568,7 @@ public abstract class DataObject {
      *                      distribution.
      */
     public void commit(String destinations) {
-        objectTime = ZDate.now();
+        stateManager.setObjectTime(ZDate.now());
         Collection<UUID> uuidList = destinations == null ? null : Ztrings.split(destinations).toUUIDs();
         
         // Check first if for myself
@@ -482,9 +598,11 @@ public abstract class DataObject {
      * candidate application. The information is provided in the method parameters as follows:
      * @param appUUID       {@link org.spiderwiz.core.Main#getAppUUID() application UUID}.
      * @param appName       {@link org.spiderwiz.core.Main#getAppName() application name}.
-     * @param userID        the user ID attached to the network channel through which the destination application is connected to the
+     * @param userID        the user IDs attached to the network channel through which the destination application is connected to the
      *                      current application. (see <a href="doc-files/config.html#UserID">application's configuration file</a> how to
-     *                      associate a user ID to a network channel).
+     *                      associate a user ID to a network channel). In case of multiple user IDs (when connecting the same
+     *                      application through multiple connections with different user IDs), the value of this parameter is a
+     *                      comma-separated concatenations of all IDs. If no user ID has been specified then the value is null.
      * @param remoteAddress remote address of the destination application.
      * @param appParams     application parameter map as set by {@link org.spiderwiz.core.Main#getAppParams()}
      *                      method of the destination application. May be null if the destination application did not define any
@@ -763,12 +881,12 @@ public abstract class DataObject {
      * @throws Exception    if archiving failed.
      * @see #getArchivePath() 
      */
-    public final boolean archive() throws Exception {
+    public boolean archive() throws Exception {
         String path = createArchivePath();
         if (path == null)
             return false;
         Main.getInstance().getArchiver().archive(
-            path, objectTime, getTransmitPrefix(), getObjectCode(), getFullKey(), getObjectValues(false));
+            path, stateManager.getObjectTime(), getTransmitPrefix(), getObjectCode(), getFullKey(), getObjectValues(false));
         return true;
     }
     
@@ -854,10 +972,7 @@ public abstract class DataObject {
                 if (from == null && until == null)
                     return archiver.deleteArchiveFile(path);
             }
-            else if (from != null)
-                return archiver.deleteByTime(objectCode, from, until, path);
-//            else
-//                archiver.deleteAll(objectCode, from, until, path);
+            return archiver.deleteByTime(objectCode, from, until, path);
         } catch (Exception ex) {
             Main.getInstance().sendExceptionMail(ex, String.format(CoreConsts.AlertMail.WHEN_DELETING, objectCode), null, false);
         }
@@ -879,8 +994,8 @@ public abstract class DataObject {
      * values. You may want to use it for debugging purposes.
      * @return the serialized object values as delivered on the network, or null if the object was created locally.
      */
-    public final synchronized String getRawCommand() {
-        return rawCommand;
+    public final String getRawCommand() {
+        return stateManager.getRawCommand();
     }
 
     /**
@@ -890,8 +1005,8 @@ public abstract class DataObject {
      * on the serialized object by a peer application.
      * @return the timestamp that was attached to the object on the network, or null if the object was created locally.
      */
-    public final synchronized ZDate getCommandTs() {
-        return objectTime;
+    public final ZDate getCommandTs() {
+        return stateManager.getObjectTime();
     }
 
     /**
@@ -934,28 +1049,28 @@ public abstract class DataObject {
         return child == null || child.isObsolete() ? null : child;
     }
     
-    synchronized boolean isObsolete() {
-        return removed || rename != null; 
+    boolean isObsolete() {
+        return stateManager.isObsolete();
     }
 
-    synchronized String getRename() {
-        return rename;
+    String getRename() {
+        return stateManager.getRename();
     }
 
-    synchronized void setRename(String rename) {
-        this.rename = rename;
+    void setRename(String rename) {
+        stateManager.setRename(rename);
     }
 
-    synchronized void delete() {
-        removed = true;
-        if (parent != null)
-            parent.deleteChild(this);
+    void delete() {
+        DataObject par = stateManager.delete();
+        if (par != null)
+            par.deleteChild(this);
     }
     
-    synchronized void undelete() {
-        removed = false;
-        if (parent != null)
-            parent.insertChild(this);
+    void undelete() {
+        DataObject par = stateManager.undelete();
+        if (par != null)
+            par.insertChild(this);
     }
     
     private void deleteChild(DataObject child) {
@@ -984,44 +1099,51 @@ public abstract class DataObject {
      * @throws Exception 
      */
     void doExport(ImportManager importManager) throws Exception {
-        String newID;
-        synchronized(this) {
-            newID = rename != null ? rename : removed ? "" : null; 
-        }
         if (importManager != null)
-            importManager.transmitObject(this, newID);
+            importManager.transmitObject(this, stateManager.getNewID());
     }
 
-    synchronized DataHandler getDataChannel() {
-        return dataChannel;
+    private void setObjectID(String objectID) {
+        stateManager.setObjectID(objectID);
+    }
+    
+    private void setParent(DataObject parent) {
+        stateManager.setParent(parent);
+    }
+    
+    final DataHandler getDataChannel() {
+        return stateManager.getDataChannel();
     }
 
-    synchronized void setDataChannel(DataHandler dataChannel) {
-        this.dataChannel = dataChannel;
-        setUserID(dataChannel.getAppUser());
+    final void setDataChannel(DataHandler dataChannel) {
+        stateManager.setDataChannel(dataChannel);
     }
 
-    final synchronized DataObject setRawCommand(String rawCommand) {
-        this.rawCommand = rawCommand;
+    final DataObject setRawCommand(String rawCommand) {
+        stateManager.setRawCommand(rawCommand);
         return this;
     }
 
-    final synchronized DataObject setCommandTs(ZDate commandTs) {
-        this.objectTime = commandTs;
+    final DataObject setCommandTs(ZDate commandTs) {
+        stateManager.setObjectTime(commandTs);
         return this;
     }
 
-    final synchronized DataObject setOriginUUID(UUID originUUID) {
-        this.originUUID = originUUID;
+    final DataObject setOriginUUID(UUID originUUID) {
+        stateManager.setOriginUUID(originUUID);
         return this;
     }
 
-    final synchronized Collection<UUID> getDestinations() {
-        return destinations;
+    final Collection<UUID> getDestinations() {
+        return stateManager.getDestinations();
     }
 
-    final synchronized void setDestinations(Collection<UUID> destinations) {
-        this.destinations = destinations;
+    final void setDestinations(Collection<UUID> destinations) {
+        stateManager.setDestinations(destinations);
+    }
+    
+    final void setRemoved() {
+        stateManager.setRemoved(true);
     }
 
     /**
@@ -1075,15 +1197,13 @@ public abstract class DataObject {
         DataObject child = key == null ? null : getChild(code, key);
         boolean newObject = false;
         if (child == null) {
-            if (remove)
-                return null;
             child = Main.getInstance().createDataObject(code);
             if (child == null)
                 return null;
             newObject = true;
-            child.objectID = key == null ? "" : key;
-            child.parent = this;
-            child.originUUID = commandUUID;
+            child.setObjectID(key == null ? "" : key);
+            child.setParent(this);
+            child.setOriginUUID(commandUUID);
             if (child.getObjectID() != null && !child.isDisposable() && !Main.getMyConfig().isPropertySet(MyConfig.PASS_THROUGH))
                 storeChild(child);
         }
@@ -1129,16 +1249,7 @@ public abstract class DataObject {
     }
     
     final String getFullKey() {
-        StringBuilder key = new StringBuilder();
-        if (parent != null)
-            key.append(parent.getFullKey());
-        if (getObjectID() != null) {
-            if (key.length() > 0)
-                key.append(Serializer.BAR_SEPARATOR);
-            key.append(Serializer.escapeDelimiters(getObjectID()));
-        }
-        Serializer.removeTrailingDelimiters(key, 0, Serializer.BAR_SEPARATOR);
-        return key.toString();
+        return stateManager.getFullKey();
     }
     
     /**
@@ -1209,7 +1320,7 @@ public abstract class DataObject {
             if (obj != null && !obj.isObsolete())
                 return null;
             map.remove(oldID);
-            child.objectID = newID == null ? "" : newID;
+            child.setObjectID(newID == null ? "" : newID);
             map.put(newID, child);
         }
         try {
@@ -1235,7 +1346,7 @@ public abstract class DataObject {
                         object.removeTerminatedChildren(terminatedApp);
                         if (terminatedApp.equals(object.getOriginUUID())) {
                             terminated.add(object);
-                            object.removed = true;
+                            object.setRemoved();
                             DataManager.getInstance().objectEvent(object);
                         }
                     }
@@ -1266,8 +1377,10 @@ public abstract class DataObject {
         if (remove) {
             if (fields == null || fields.isEmpty())
                 delete();
-            else
-                return parent.renameChild(this, Serializer.unescapeDelimiters(fields));
+            else {
+                DataObject par = stateManager.getParent();
+                return par == null ? null : par.renameChild(this, Serializer.unescapeDelimiters(fields));
+            }
             return this;
         }
         return deserialize(fields);

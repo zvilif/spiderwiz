@@ -148,7 +148,9 @@ public class Websocket extends Channel {
     }
 
     private String addSchema(String uri) {
-        return (uri.startsWith(PluginConsts.WebSocket.WEBSOCKET_SCHEMA) ? "" : PluginConsts.WebSocket.WEBSOCKET_SCHEMA + "//") + uri;
+        String sc = uri.toLowerCase();
+        return (sc.startsWith(PluginConsts.WebSocket.WEBSOCKET_SCHEMA) || sc.startsWith(PluginConsts.WebSocket.WSS_SCHEMA)? "" :
+            PluginConsts.WebSocket.WEBSOCKET_SCHEMA + "//") + uri;
     }
     
     public void onMessage(byte[] binaryMessage, Session session) {

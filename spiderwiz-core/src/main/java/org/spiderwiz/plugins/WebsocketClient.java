@@ -11,8 +11,6 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-import org.spiderwiz.plugins.EndpointConsts;
-import org.spiderwiz.plugins.Websocket;
 
 /**
  * Implements WebSocket client endpoint

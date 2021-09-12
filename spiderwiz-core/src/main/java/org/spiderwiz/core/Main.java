@@ -87,7 +87,8 @@ import org.spiderwiz.zutils.ZUtilities;
 
 @WizMain
 public abstract class Main {
-    private static final String CORE_VERSION = "Z4.00"; // Version Z4.00: Stable published version 4.0
+    private static final String CORE_VERSION = "Z4.33"; // Version Z4.33: Fix Javadoc in ZHashMap
+    
     private static final String DEFAULT_CONFIGFILENAME = "settings.conf";
 
     /**
@@ -378,6 +379,7 @@ public abstract class Main {
                 System.out.println();
                 return false;
             }
+            deployDate = ZDate.now();
             startLogging(true);
             
             // get or generate application uuid
@@ -402,10 +404,10 @@ public abstract class Main {
             history = createMyConfig();
             history.init(rootFolder + config.getHistoryFileName());
             alertMail = new AlertMail();
+            dataManager.init(factoryMap.keySet());
             if (!preStart())
                 return false;
             logger.logEvent(CoreConsts.WELCOME, getAppName(), getAppVersion(), getCoreVersion());
-            dataManager.init(factoryMap.keySet());
             hub.init();
             hub.execute();
             history.processAllProperties();
@@ -413,7 +415,6 @@ public abstract class Main {
             // start the genera runPeriodicalTasks
             generalMonitor.execute();
             
-            deployDate = ZDate.now();
             postStart();
         } catch (Exception ex) {
             sendExceptionMail(ex, CoreConsts.AlertMail.EXCEPTION_MAIN_INIT, null, true);
@@ -705,6 +706,7 @@ public abstract class Main {
     private boolean loadConfig () throws Exception {
         if (!config.reload())
             return false;
+        setAlertMail(new AlertMail());          // Reset mail as it might be reconfigured
         hub.reloadConfig();
         return true;
     }
@@ -796,8 +798,12 @@ public abstract class Main {
         hub.reset();
     }
     
-    AlertMail getAlertMail() {
+    synchronized AlertMail getAlertMail() {
         return alertMail;
+    }
+
+    private synchronized void setAlertMail(AlertMail alertMail) {
+        this.alertMail = alertMail;
     }
     
     /**
@@ -827,10 +833,37 @@ public abstract class Main {
      * @param alert             if true, the title in the mail body will appear in red, otherwise it will appear in green.
      */
     public void sendNotificationMail(String msg, String additionalInfo, ZDate eventTime, boolean alert) {
-        alertMail.sendNotificationMail(getAppName(), ZUtilities.getMyIpAddress(), msg, null, additionalInfo, null, eventTime, alert);
+        getAlertMail().sendNotificationMail(
+            getAppName(), ZUtilities.getMyIpAddress(), msg, null, additionalInfo, null, eventTime, alert
+        );
         EventReport obj = Main.getInstance().createEventReport();
         if (obj != null)
             obj.commitEvent(msg, additionalInfo, null, alert);
+    }
+    
+    /**
+     * Send a general mail using the given parameters.
+     * <p>
+     * Send a general mail using the given parameters using the mail system and mail connection
+     * properties that are defined in the <a href="doc-files/config.html">application's configuration file</a>. If these are not
+     * define then the method does nothing and returns {@code false}.
+     * @param from          the mail address to send from.
+     * @param to            the mail address to send to.
+     * @param cc            the mail address(es) to send cc to.
+     * @param subject       the subject of the mail.
+     * @param body          the body of the mail.
+     * @param html          if true the mail is sent as containing HTML markup. 
+     * @param highPriority  true if the message shall be flagged as high priority.
+     * @return true if and only if the mail has been sent successfully.
+     * @throws java.lang.Exception
+     */
+    public boolean sendGeneralMail(
+        String from, String to, String cc, String subject, String body, boolean html, boolean highPriority
+    ) throws Exception {
+        AlertMail mail = getAlertMail();
+        if (mail == null)
+            return false;
+        return mail.sendGeneralMail(from, to, cc, subject, body, html, highPriority);
     }
     
     void monitorDiskSpace() {

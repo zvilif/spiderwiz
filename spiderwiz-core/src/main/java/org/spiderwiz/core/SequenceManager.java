@@ -361,6 +361,10 @@ final class SequenceManager {
     synchronized void setChannel(DataHandler channel) {
         this.channel = channel;
         this.logger = channel.getLogger();
+        resetAll();
+    }
+    
+    void resetAll() {
         sendCount.resetAll();
     }
 
@@ -384,9 +388,12 @@ final class SequenceManager {
     void resetOutput(Collection<String> requestedObjects, DataHandler fromSocket) {
         boolean hubMode = Main.getMyConfig().isHubMode();
         for (String cmd : requestedObjects) {
-            if (!DataManager.getInstance().isProducingObject(cmd) && !hubMode)
-                continue;
-            CommandSequencer sm = sendCount.create(cmd, true);
+            CommandSequencer sm = sendCount.get(cmd);
+            if (sm == null) {
+                if (!DataManager.getInstance().isProducingObject(cmd) && !hubMode)
+                    continue;
+                sm = sendCount.create(cmd, true);
+            }
             if (sm != null) {
                 sm.reset();
                 DataManager.getInstance().processReset(sm.createResetter());

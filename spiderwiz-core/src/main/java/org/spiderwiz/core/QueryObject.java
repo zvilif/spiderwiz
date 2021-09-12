@@ -53,12 +53,164 @@ public abstract class QueryObject extends DataObject{
     @WizField private QueryState queryState = QueryState.QUERY;        // Possible values: 0-query, 1-reply, 2-reply next, 3-reply end
     @WizField private long expires = 0;
     
-    private final ZTrigger waitForReply;
-    private final ZTrigger pauseStreaming;
-    private final ZTrigger busy;
-    private ZDate activated = null;
-    private ZDate startStreaming = null;
-    private int totalStreamedRecords = 0;
+    private final class StateManager {
+        private final ZTrigger waitForReply;
+        private final ZTrigger pauseStreaming;
+        private final ZTrigger busy;
+        private ZDate activated = null;
+        private ZDate startStreaming = null;
+        private int totalStreamedRecords = 0;
+
+        public StateManager() {
+            waitForReply = new ZTrigger();
+            pauseStreaming = new ZTrigger();
+            busy = new ZTrigger();
+            busy.activate();    // At the beginning the 'busy' trigger is released.
+        }
+
+        synchronized void setActivated(ZDate activated) {
+            this.activated = activated;
+        }
+
+        synchronized ZDate getStartStreaming() {
+            return startStreaming;
+        }
+
+        synchronized void setStartStreaming(ZDate startStreaming) {
+            this.startStreaming = startStreaming;
+        }
+
+        synchronized int getTotalStreamedRecords() {
+            return totalStreamedRecords;
+        }
+
+        synchronized void setTotalStreamedRecords(int totalStreamedRecords) {
+            this.totalStreamedRecords = totalStreamedRecords;
+        }
+
+        synchronized int incTotalStreamedRecords() {
+            return ++totalStreamedRecords;
+        }
+        
+        synchronized void startStreaming() {
+            totalStreamedRecords = 0;
+            startStreaming = null;
+        }
+        
+        synchronized int getQueryID() {
+            return queryID;
+        }
+
+        synchronized int setQueryID(int queryID) {
+            int id = QueryObject.this.queryID;
+            QueryObject.this.queryID = queryID;
+            return id;
+        }
+
+        synchronized QueryState getQueryState() {
+            return queryState;
+        }
+
+        synchronized boolean isReply() {
+            switch (queryState) {
+            case REPLIED:
+            case NEXT:
+            case END:
+                return true;
+            }
+            return false;
+        }
+
+        synchronized void setQueryState(QueryState queryState) {
+            QueryObject.this.queryState = queryState;
+        }
+
+        synchronized long getExpires() {
+            return expires;
+        }
+
+        synchronized boolean startPost(long expires) {
+            if (isBusy())     // Don't reuse an active query
+                return false;
+            queryState = QueryState.QUERY;
+            QueryObject.this.expires = expires;
+            return true;
+        }
+
+        boolean waitForReply() {
+            if (isComplete())
+                return true;
+            if (getExpires() == 0)
+                return false;
+            waitForReply.pause(getExpires());
+            return isReplied();
+        }
+        
+        synchronized boolean isBusy() {
+            return activated != null && activated.add(expires).elapsed() < 0;
+        }
+        
+        synchronized boolean isReplied() {
+            return queryState != QueryState.QUERY;
+        }
+
+        synchronized boolean isComplete() {
+            switch(queryState) {
+            case REPLIED:
+            case END:
+                return !isOpenQuery();
+            case ABORTED:
+                return true;
+            }
+            return false;
+        }
+    
+        void waitBusy() {
+            busy.pause(0);
+        }
+    
+        void releaseBusy() {
+            busy.activate();
+        }
+    
+        void releaseWaitForReply() {
+            waitForReply.release();
+        }
+        
+        synchronized boolean activate()  {
+            if (stateManager.isComplete()) {
+                activated = null;
+                return false;
+            }
+            if (queryState != QueryState.QUERY && queryState != QueryState.NEXT)
+                return false;
+            activated = ZDate.now();
+            return true;
+        }
+
+        boolean abortQuery() {
+            if (isComplete())
+                return false;
+            synchronized(this){
+                queryState = QueryState.ABORTED;
+                activated = null;
+            }
+            waitForReply.release();
+            return true;
+        }
+
+        synchronized boolean hasExpired() {
+            return activated == null ? false : (activated.add(expires)).elapsed() >= 0;
+        }
+        
+        void cleanup() {
+            setQueryState(QueryState.ABORTED);
+            waitForReply.release();
+            pauseStreaming.release();
+        }
+    }
+    
+    private final StateManager stateManager;
 
     /**
      * Object constructor.
@@ -67,10 +219,7 @@ public abstract class QueryObject extends DataObject{
      * {@link org.spiderwiz.core.Main#createQuery(java.lang.Class) Main.createQuery()}.
      */
     public QueryObject() {
-        waitForReply = new ZTrigger();
-        pauseStreaming = new ZTrigger();
-        busy = new ZTrigger();
-        busy.activate();    // At the beginning the 'busy' trigger is released.
+        stateManager = new StateManager();
     }
 
     /**
@@ -99,20 +248,14 @@ public abstract class QueryObject extends DataObject{
      */
     public final void post(long expires, String destinations) {
         try {
-            synchronized(this){
-                if (isBusy())     // Don't reuse an active query
-                    return;
-                queryState = QueryState.QUERY;
-                this.expires = expires;
-                activate();
-            }
+            if (!stateManager.startPost(expires))
+                return;
+            activate();
             setOriginUUID(Main.getInstance().getAppUUID());
             Collection<UUID> destinationUUIDs = destinations == null ? null : Ztrings.split(destinations).toUUIDs();
             setDestinations(destinationUUIDs);
             if (!Hub.getInstance().pendMyQuery(this)) {
-                synchronized(this){
-                    activated = null;
-                }
+                stateManager.setActivated(null);
                 onExpire();
                 return;
             }
@@ -141,12 +284,7 @@ public abstract class QueryObject extends DataObject{
      * @return true if the query has been replied, fully or partially, and false when it has expired.
      */
     public final boolean waitForReply() {
-        if (isComplete())
-            return true;
-        if (getExpires() == 0)
-            return false;
-        waitForReply.pause(getExpires());
-        return isReplied();
+        return stateManager.waitForReply();
     }
     
     /**
@@ -203,17 +341,17 @@ public abstract class QueryObject extends DataObject{
      * @throws java.lang.Exception
      */
     protected final boolean replyNext() throws Exception  {
-        if (startStreaming == null) {
-            startStreaming = ZDate.now();
-            totalStreamedRecords = 0;
+        if (stateManager.getStartStreaming() == null) {
+            stateManager.setStartStreaming(ZDate.now());
+            stateManager.setTotalStreamedRecords(0);
         }
         if (replyStep(QueryState.NEXT)) {
             int sr = getStreamingRate();
             if (sr > 0) {
-                long timeDue = (long)(++totalStreamedRecords / (sr / (double) ZDate.SECOND));
-                long msWait = timeDue - startStreaming.elapsed();
+                long timeDue = (long)(stateManager.incTotalStreamedRecords() / (sr / (double) ZDate.SECOND));
+                long msWait = timeDue - stateManager.getStartStreaming().elapsed();
                 if (msWait > 0)
-                    pauseStreaming.pause(msWait);
+                    stateManager.pauseStreaming.pause(msWait);
             }
             return true;
         }
@@ -290,15 +428,8 @@ public abstract class QueryObject extends DataObject{
      * response or the end of a multi-item response stream were received for it, or if the query was {@link #abort() aborted}.
      * @return true if and only if the query has been completely replied.
      */
-    protected final synchronized boolean isComplete() {
-        switch(queryState) {
-        case REPLIED:
-        case END:
-            return !isOpenQuery();
-        case ABORTED:
-            return true;
-        }
-        return false;
+    protected final boolean isComplete() {
+        return stateManager.isComplete();
     }
     
     /**
@@ -360,13 +491,11 @@ public abstract class QueryObject extends DataObject{
      */
     @Override
     public void cleanup() {
-        setQueryState(QueryState.ABORTED);
-        waitForReply.release();
-        pauseStreaming.release();
+        stateManager.cleanup();
     }
 
-    final synchronized int getQueryID() {
-        return queryID;
+    final int getQueryID() {
+        return stateManager.getQueryID();
     }
 
     /**
@@ -374,66 +503,31 @@ public abstract class QueryObject extends DataObject{
      * @param queryID
      * @return 
      */
-    final synchronized int setQueryID(int queryID) {
-        int id = this.queryID;
-        this.queryID = queryID;
-        return id;
+    final int setQueryID(int queryID) {
+        return stateManager.setQueryID(queryID);
     }
 
-    /**
-     * Check if the query has been replied.
-     * @return true if the object contains the reply to the query.
-     */
-    private synchronized boolean isReplied() {
-        return queryState != QueryState.QUERY;
-    }
-    
-    /**
-     * Check if the query is busy, i.e. in the state of query that hasn't been fully replied.
-     * @return true if the query is not active or has expired.
-     */
-    private synchronized boolean isBusy() {
-        return activated != null && activated.add(expires).elapsed() < 0;
+    final QueryState getQueryState() {
+        return stateManager.getQueryState();
     }
 
-    final synchronized QueryState getQueryState() {
-        return queryState;
-    }
-
-    synchronized void setQueryState(QueryState queryState) {
-        this.queryState = queryState;
-    }
-
-    final synchronized long getExpires() {
-        return expires;
-    }
-    
     final void waitBusy() {
-        busy.pause(0);
+        stateManager.waitBusy();
     }
     
     final void releaseBusy() {
-        busy.activate();
+        stateManager.releaseBusy();
     }
     
     final void releaseWaitForReply() {
-        waitForReply.release();
+        stateManager.releaseWaitForReply();
     }
         
     /**
      * Set activation time
      */
     final void activate() {
-        synchronized(this) {
-            if (isComplete()) {
-                activated = null;
-                return;
-            }
-            if (queryState != QueryState.QUERY && queryState != QueryState.NEXT)
-                return;
-            activated = ZDate.now();
-        }
-        if (Hub.getInstance().isMe(getOriginUUID()) > 0)
+        if (stateManager.activate() && Hub.getInstance().isMe(getOriginUUID()) > 0)
             QueryManager.getInstance().scheduleQuery(this, expires);
     }
     
@@ -442,13 +536,8 @@ public abstract class QueryObject extends DataObject{
      * @return true if was active before
      */
     final boolean abortQuery() throws Exception {
-        if (isComplete())
+        if (!stateManager.abortQuery())
             return false;
-        synchronized(this){
-            queryState = QueryState.ABORTED;
-            activated = null;
-        }
-        releaseWaitForReply();
         if (Hub.getInstance().isMe(getOriginUUID()) > 0)
             propagate(false, getDestinations(), null);
         return true;
@@ -458,7 +547,7 @@ public abstract class QueryObject extends DataObject{
      * Call onExpire() if necessary.
      */
     final void expire() {
-        if (isComplete() || !hasExpired())
+        if (stateManager.isComplete() || !stateManager.hasExpired())
             return;
         onExpire();
     }
@@ -467,8 +556,8 @@ public abstract class QueryObject extends DataObject{
      * Check if query has expired
      * @return 
      */
-    synchronized final boolean hasExpired() {
-        return activated == null ? false : (activated.add(expires)).elapsed() >= 0;
+    final boolean hasExpired() {
+        return stateManager.hasExpired();
     }
 
     /**
@@ -478,10 +567,10 @@ public abstract class QueryObject extends DataObject{
      * @throws Exception 
      */
     final void reply(boolean busy) throws Exception {
-        if (hasExpired())
+        if (stateManager.hasExpired())
             return;
         if (!busy)
-            waitBusy();
+            stateManager.waitBusy();
         activate();
         try {
             if (Hub.getInstance().isMe(getOriginUUID()) > 0)
@@ -490,7 +579,7 @@ public abstract class QueryObject extends DataObject{
                 Hub.getInstance().propagateObject(this, false, Collections.singleton(getOriginUUID()), null);
         } finally {
             if (!busy)
-                releaseBusy();
+                stateManager.releaseBusy();
         }
     }
     
@@ -500,8 +589,8 @@ public abstract class QueryObject extends DataObject{
     final void processReply() throws Exception {
         activate();
         if (!DataManager.getInstance().getEventDispatcher(getObjectCode()).queryReply(this, false)) {
-            releaseWaitForReply();
-            releaseBusy();
+            stateManager.releaseWaitForReply();
+            stateManager.releaseBusy();
         }
     }
     
@@ -510,27 +599,26 @@ public abstract class QueryObject extends DataObject{
      * @return the value returned by the event.
      */
     final boolean inquire() {
-        if (hasExpired())
+        if (stateManager.hasExpired())
             return false;
-        waitBusy();
+        stateManager.waitBusy();
         try {
-            if (isComplete())           // Make sure nobody is ahead of us.
+            if (stateManager.isComplete())           // Make sure nobody is ahead of us.
                 return false;
-            totalStreamedRecords = 0;
-            startStreaming = null;
+            stateManager.startStreaming();
             boolean success = onInquire();
             if (success)
-                setQueryState(QueryState.REPLIED);
+                stateManager.setQueryState(QueryState.REPLIED);
             return success;
         } finally {
-            releaseBusy();
+            stateManager.releaseBusy();
         }
     }
     
     private boolean replyStep(QueryState queryState) throws Exception  {
-        if (isComplete())
+        if (stateManager.isComplete())
             return false;
-        setQueryState(queryState);
+        stateManager.setQueryState(queryState);
         reply(true);
         return true;
     }
@@ -540,7 +628,7 @@ public abstract class QueryObject extends DataObject{
      * @param resetter A Resetter object managing the reset of a specific object type.
      */
     final boolean resend(Resetter resetter) {
-        if (!hasExpired() && !isComplete())
+        if (!stateManager.hasExpired() && !stateManager.isComplete())
             return resetter.resetObject(this);
         return false;
     }
@@ -560,7 +648,7 @@ public abstract class QueryObject extends DataObject{
      * @param objectValues  field values
      * @return true if a query reply
      */
-    static boolean isReply(String prefix, String objectValues) {
+    static boolean isQueryReply(String prefix, String objectValues) {
         if (!isQuery(prefix))
             return false;
         String vals[] = objectValues.split(",", 3);
@@ -577,13 +665,7 @@ public abstract class QueryObject extends DataObject{
      * @return true if this object is in reply state
      */
     boolean isReply() {
-        switch (queryState) {
-        case REPLIED:
-        case NEXT:
-        case END:
-            return true;
-        }
-        return false;
+        return stateManager.isReply();
     }
     
     @Override

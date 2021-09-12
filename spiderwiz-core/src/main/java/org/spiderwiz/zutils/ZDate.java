@@ -201,6 +201,14 @@ public final class ZDate extends Date {
     public static ZDate now() {
         return new ZDate();
     }
+    
+    /**
+     * Returns a new time object representing the midnight that started the current day
+     * @return a new time object representing the midnight that started the current day
+     */
+    public static ZDate today() {
+        return new ZDate().getMidnight();
+    }
 
     /**
      * Returns the current time formatted into a string.
@@ -342,7 +350,7 @@ public final class ZDate extends Date {
      * If the given time object is {@code null} or this time object is strictly before {@code when} then this object is returned,
      * otherwise {@code when} is returned.
      * @param when  time object to compare to.
-     * @return this object is it is before the given object or the given object is null, otherwise return the given object.
+     * @return this object if it is before the given object or the given object is null, otherwise return the given object.
      */
     public ZDate earliest(ZDate when) {
         return when == null || before(when) ? this : when;
@@ -515,7 +523,7 @@ public final class ZDate extends Date {
         Calendar in = Calendar.getInstance();
         in.setTime(t);
         Calendar out = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        out.setTimeInMillis(0);
+        out.setTime(t);
         out.set(in.get(Calendar.YEAR), in.get(Calendar.MONTH), in.get(Calendar.DAY_OF_MONTH),
                 in.get(Calendar.HOUR_OF_DAY), in.get(Calendar.MINUTE), in.get(Calendar.SECOND));
         return new ZDate (out.getTime());

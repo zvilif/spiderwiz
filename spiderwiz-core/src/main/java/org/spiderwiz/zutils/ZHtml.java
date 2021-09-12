@@ -80,6 +80,18 @@ public final class ZHtml {
         }
         
         /**
+         * Instantiates a paragraph node ({@code p} tag) with the given text.
+         * <p>
+         * The method just instantiates the node without connecting it to any other node. This can be done with methods such as
+         * {@link TextNode#addNode(org.spiderwiz.zutils.ZHtml.Node) TextNode.addNode()} etc.
+         * @param text  the text contained in the returned paragraph node.
+         * @return the instantiated paragraph node.
+         */
+        public final Paragraph createParagraph(String text) {
+            return new Paragraph(text);
+        }
+        
+        /**
          * Instantiates an anchor node ({@code a} tag) with the given text, url ({@code ref} attribute) and
          * optional arguments to inject in the url.
          * @param text  the text displayed in the node.
@@ -153,6 +165,16 @@ public final class ZHtml {
             Paragraph p = new Paragraph(text);
             body.addNode(p);
             return p;
+        }
+        
+        /**
+         * Appends a div element ({@code div} tag) to the document body.
+         * @return the added Div node.
+         */
+        public Div addDiv() {
+            Div div = new Div();
+            body.addNode(div);
+            return div;
         }
 
         /**
@@ -443,6 +465,23 @@ public final class ZHtml {
     }
     
     /**
+     * Represents a div element (<code>&lt;div&gt;</code>).
+     */
+    public class Div extends TextNode {
+
+        /**
+         * Construct an empty div element
+         * <p>
+         * The text can contain any text, including special HTML characters. The text is HTML-escaped when the node is converted
+         * to HTML.
+         * @param text      initial text to put in the node.
+         */
+        Div() {
+            super("div", "");
+        }
+    }
+    
+    /**
      * Represents a heading tag with a given level ({@code <h}<em style=font-size:x-small>level</em>{@code >}).
      */
     public class Heading extends Node {
@@ -683,7 +722,12 @@ public final class ZHtml {
         return "<b>" + text + "</b>";
     }
 
-    private String escape(String s) {
+    /**
+     * Encode the give text as valid HTML visible text
+     * @param s     plain text
+     * @return      HTML text
+     */
+    public static String escape(String s) {
         StringBuilder builder = new StringBuilder();
         boolean previousWasASpace = false;
         for (char c : s.toCharArray()) {

@@ -3,6 +3,9 @@ package org.spiderwiz.zutils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * A synchronized implementation of {@link java.util.HashMap}.
@@ -134,6 +137,22 @@ public class ZHashMap<K, V> extends HashMap<K, V>{
     }
 
     /**
+     * Synchronized implementation of {@link java.util.HashMap#computeIfAbsent(java.lang.Object, java.util.function.Function) }.
+     * @param key               key with which the specified value is to be associated
+     * @param mappingFunction   the mapping function to compute a value
+     * @return  the current (existing or computed) value associated with the specified key, or null if the computed value is null
+     */
+    @Override
+    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+        lock.lockWrite();
+        try {
+            return super.computeIfAbsent(key, mappingFunction);
+        } finally {
+            lock.unlockWrite();
+        }
+    }
+
+    /**
      * This does what {@link java.util.HashMap#putIfAbsent(java.lang.Object, java.lang.Object)} does (plus synchronization),
      * but it always returns the newly stored value.
      * @param key       key with which the specified value is to be associated.
@@ -180,6 +199,23 @@ public class ZHashMap<K, V> extends HashMap<K, V>{
     }
 
     /**
+     * Removes all of the elements of this map that satisfy the given
+     * two-argument predicate, assuming the first argument is the element key and the second is the element value.
+     *
+     * @param filter a two-argument predicate which returns {@code true} for elements whose key matches the first argument
+     * and value matches the second argument to be removed
+     * @return {@code true} if any elements were removed
+     */
+    public boolean removeIf(BiFunction<? super K, ? super V, Boolean> filter) {
+        lock.lockWrite();
+        try {
+            return entrySet().removeIf(s -> filter.apply(s.getKey(), s.getValue()));
+        } finally {
+            lock.unlockWrite();
+        }
+    }
+
+    /**
      * Synchronized implementation of {@link java.util.HashMap#size()}.
      * @return  the number of key-value mappings in this map.
      */
@@ -218,6 +254,20 @@ public class ZHashMap<K, V> extends HashMap<K, V>{
             super.clear();
         } finally {
             lock.unlockWrite();
+        }
+    }
+
+    /**
+     * Synchronized implementation of {@link java.util.HashMap#forEach(java.util.function.BiConsumer) }
+     * @param action 
+     */
+    @Override
+    public void forEach(BiConsumer<? super K, ? super V> action) {
+        lock.lockRead();
+        try {
+            super.forEach(action);
+        } finally {
+            lock.unlockRead();
         }
     }
 }

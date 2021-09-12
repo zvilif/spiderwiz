@@ -3,8 +3,39 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.spiderwiz</groupId>
     <artifactId>spiderwiz-websocket-server</artifactId>
-    <version>1.2</version>
+    <version>1.3</version>
     <packaging>jar</packaging>
+    
+    <name>spiderwiz-websocket-server</name>
+    <description>Used to define a Spiderwiz-based application as a WebSocket server</description>
+    <url>http://spiderwiz.org</url>
+    <developers>
+        <developer>
+            <name>Zvi Lifshitz</name>
+            <email>zvilif@gmail.com</email>
+            <organization>spiderwiz.org</organization>
+            <organizationUrl>http://spiderwiz.org</organizationUrl>
+        </developer>
+    </developers>
+ 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://spiderwiz.org/project/license-terms/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+ 
+    <scm>
+        <url>https://github.com/zvilif/spiderwiz/tree/master/spiderwiz-websocket</url>
+    </scm>
+    
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
     <build>
         <plugins>
             <plugin>
@@ -21,11 +52,61 @@
                         <link>https://docs.oracle.com/javase/8/docs/api/</link>
                     </links>
                     <bottom>
-                        Copyright © 2020, spiderwiz.org. All rights reserved. Use is subject to
-                        &lt;a href="http://spiderwiz.org/web/project/license-terms/"&gt;license terms&lt;/a&gt;.
+                        Copyright &copy; 2020, spiderwiz.org. All rights reserved. Use is subject to
+                        &lt;a href="http://spiderwiz.org/project/license-terms/"&gt;license terms&lt;/a&gt;.
                     </bottom>
                 </configuration>
+                <!-- Used only for releasing to Maven Central
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                  end -->
             </plugin>
+            <!-- Used only for releasing to Maven Central 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+              end -->
         </plugins>
     </build>
     <dependencies>
@@ -44,7 +125,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>spiderwiz-core</artifactId>
-            <version>4.0</version>
+            <version>4.3</version>
         </dependency>
     </dependencies>
     <properties>
@@ -52,5 +133,4 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
-    <name>spiderwiz-websocket-server</name>
 </project>

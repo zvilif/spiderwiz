@@ -1,7 +1,10 @@
 package org.spiderwiz.zutils;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * A synchronized implementation of {@link java.util.HashSet}.
@@ -10,7 +13,7 @@ import java.util.HashSet;
  * synchronization.
  * @param <T>   the type of elements maintained by this set.
  */
-public class ZHashSet<T> extends HashSet{
+public class ZHashSet<T> extends HashSet<T>{
     private final ZLock lock;
 
     /**
@@ -51,7 +54,7 @@ public class ZHashSet<T> extends HashSet{
     }
     
     /**
-     * Unlocks the set after writing.
+     * Unlocks the set after writing.a
      * <p>
      * This method is used by the class internally, but you should use it directly if you use {@link #lockWrite()} directly.
      */
@@ -65,7 +68,7 @@ public class ZHashSet<T> extends HashSet{
      * @return      true if this set did not already contain the specified element.
      */
     @Override
-    public boolean add(Object e) {
+    public boolean add(T e) {
         lock.lockWrite();
         try {
             return super.add(e);
@@ -120,6 +123,21 @@ public class ZHashSet<T> extends HashSet{
     }
 
     /**
+     * Synchronized implementation of {@link HashSet#removeIf(java.util.function.Predicate) }.
+     * @param filter a predicate which returns {@code true} for elements to be removed
+     * @return {@code true} if any elements were removed
+     */
+    @Override
+    public boolean removeIf(Predicate<? super T> filter) {
+        lock.lockWrite();
+        try {
+            return super.removeIf(filter);
+        } finally {
+            lock.unlockWrite();
+        }
+    }
+
+    /**
      * Synchronized implementation of {@link HashSet#retainAll(java.util.Collection)}.
      * @param c collection containing elements to be retained in this set.
      * @return  true if this set changed as a result of the call.
@@ -161,6 +179,20 @@ public class ZHashSet<T> extends HashSet{
             return super.containsAll(c);
         } finally {
             lock.unlockRead();
+        }
+    }
+
+    /**
+     * Synchronized implementation of {@link HashSet#forEach(java.util.function.Consumer)}.
+     * @param action The action to be performed for each element
+     */
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        lockRead();
+        try {
+            super.forEach(action);
+        } finally {
+            unlockRead();
         }
     }
 
@@ -214,7 +246,12 @@ public class ZHashSet<T> extends HashSet{
      * affecting this set.
      */
     public Collection<T> intersection(Collection<T> c) {
-        return intersection(this, c);
+        lockRead();
+        try {
+            return intersection(this, c);
+        } finally {
+            unlockRead();
+        }
     }
     
     /**
@@ -249,6 +286,7 @@ public class ZHashSet<T> extends HashSet{
      */
     public ZHashSet<T> union(Collection<T> c) {
         try {
+            lockRead();
             ZHashSet<T> result = this.getClass().getDeclaredConstructor().newInstance();
             result.addAll(this);
             result.addAll(c);
@@ -260,6 +298,57 @@ public class ZHashSet<T> extends HashSet{
         }
     }
     
+    /**
+     * Adds the elements of this set to the given collection.
+     * <p>
+     * Synchronizes the access to this set and adds its elements to the given collection.
+     * @param col   the collection to add to
+     * @return {@code true} if the target collection changed as a result of the call
+     */
+    public boolean addTo(Collection<T> col) {
+        lockRead();
+        try {
+            return col.addAll(this);
+        } finally {
+            unlockRead();
+        }
+    }
+
+    /**
+     * Converts this set to a simple array.
+     * <p>
+     * Synchronizes the access to this set and converts it to a simple array.
+     * @param cl the {@code Class} object representing the type of the set elements.
+     * @return an array containing all of the elements in this set
+     */
+    public T[] toArray(Class<T> cl) {
+        lockRead();
+        try {
+            return (T[])toArray((T[])Array.newInstance(cl, size()));
+        } finally {
+            unlockRead();
+        }
+    }
+    
+    /**
+     * Returns whether any elements of this set match the provided predicate.
+     * <p>
+     * Returns whether any elements of this set match the provided predicate. The method synchronizes the set for reading before
+     * searching for a match.
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this set
+     * @return {@code true} if any elements of the set match the provided predicate, otherwise {@code false}
+     */
+    public boolean anyMatch(Predicate<? super T> predicate) {
+        lockRead();
+        try {
+            return stream().anyMatch(predicate);
+        } finally {
+            unlockRead();
+        }
+    }
+
     private static Collection createResultClass(Collection baseObject) {
         try {
             return baseObject.getClass().getDeclaredConstructor().newInstance();

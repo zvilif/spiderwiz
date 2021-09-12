@@ -17,7 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Contains various static utility methods.
@@ -346,5 +349,42 @@ public class ZUtilities {
         int i = path.lastIndexOf('.');
         int p = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
         return i > p ? path.substring(i + 1) : null;
+    }
+    
+    /**
+     * Split {@code list} by {@code delimiter} and return the result as a {@link Set}
+     * @param list          the list to split
+     * @param delimiter     the delimiter to split by
+     * @return s split by delimiter as a Set
+     */
+    public static Set<String> splitIntoSet(String list, String delimiter) {
+        return list == null ? null : new HashSet<>(arrayToList(list.split(delimiter)));
+    }
+    
+    /**
+     * Split string {@code list} by delimiter {@code delimiter} and check if the split list contains {@code element}
+     * @param list          the list to split
+     * @param delimiter     the delimiter to split by
+     * @param element       the element to look for
+     * @return true if and only if element is contained in list
+     */
+    public static boolean contains(String list, String delimiter, String element) {
+        return list != null && Arrays.asList(list.split(delimiter)).contains(element);
+    }
+    
+    /**
+     * Check if the given path is of an empty folder
+     * @param path
+     * @return true if and only if the given path is of an empty folder
+     * @throws IOException
+     */
+    public static boolean isFolderEmpty(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> entries = Files.list(path)) {
+                return !entries.findFirst().isPresent();
+            }
+        }
+
+        return false;
     }
 }

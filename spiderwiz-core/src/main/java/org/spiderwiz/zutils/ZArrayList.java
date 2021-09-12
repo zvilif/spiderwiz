@@ -2,6 +2,8 @@ package org.spiderwiz.zutils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * A synchronized implementation of {@link java.util.ArrayList}.
@@ -117,6 +119,20 @@ public class ZArrayList<T> extends ArrayList<T> {
     }
 
     /**
+     * Synchronized implementation of {@link ArrayList#forEach(java.util.function.Consumer) }
+     * @param action The action to be performed for each element
+     */
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        lockRead();
+        try {
+            super.forEach(action);
+        } finally {
+            unlockRead();
+        }
+    }
+
+    /**
      * Synchronized implementation of {@link java.util.ArrayList#get(int)}.
      * @param index index of the element to return.
      * @return the element at the specified position in this list.
@@ -160,4 +176,24 @@ public class ZArrayList<T> extends ArrayList<T> {
             lock.unlockWrite();
         }
     }
+
+    /**
+     * Returns whether any elements of this array match the provided predicate.
+     * <p>
+     * Returns whether any elements of this array match the provided predicate. The method synchronizes the set for reading before
+     * searching for a match.
+     * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements of this array
+     * @return {@code true} if any elements of the array match the provided predicate, otherwise {@code false}
+     */
+    public boolean anyMatch(Predicate<? super T> predicate) {
+        lockRead();
+        try {
+            return stream().anyMatch(predicate);
+        } finally {
+            unlockRead();
+        }
+    }
+
 }

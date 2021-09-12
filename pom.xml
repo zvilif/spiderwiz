@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.spiderwiz</groupId>
     <artifactId>spiderwiz</artifactId>
-    <version>4.0</version>
+    <version>4.3</version>
     <packaging>pom</packaging>
     <modules>
         <module>spiderwiz-core</module>

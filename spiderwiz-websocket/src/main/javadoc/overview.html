@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>API Overview</title>
+    </head>
+    <body>
+        <h1>API Overview</h1>
+        <p> A Spiderwiz-based application defines its network connections through its <a href="http://spiderwiz.org/web/docs/apidocs/org/spiderwiz/core/doc-files/config.html"> configuration file</a>.The current version of the framework supports three types of communication &ndash; TCP/IP, WebSockets and disk files (mainly for debugging purposes). The first two can be defined as either a client or a server. An application that is configured as a WebSocket server needs to include the <em>spiderwiz-websocket-server</em> module as a dependency. The module hooks up an <a href="https://docs.oracle.com/javaee/7/api/index.html?javax/websocket/Endpoint.html"> Endpoint</a> and a <a href="https://docs.oracle.com/javaee/7/api/javax/servlet/Filter.html"> Filter</a> that are necessary for the server to work.</p>
+        <p>The classes that are included in this module are loaded automatically when the application starts. There is no need to access them directly, therefore they are not documented in this Javadoc.</p>
+    </body>
+</html>

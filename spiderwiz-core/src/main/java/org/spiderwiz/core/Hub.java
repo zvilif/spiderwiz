@@ -48,8 +48,10 @@ final class Hub {
                 try {
                     String s[] = line.split(",", 3);
                     String cmd = s[0];
-                    producedObjectMap.create(objCode).resendLosslessObject(cmd.substring(0,1), objCode, s[1], s[2], uuid, this);
-                } catch (IOException ex) {
+                    String objKeys = s.length > 1 ? s[1]: null;
+                    String objValues = s.length > 2 ? s[2] : null;
+                    producedObjectMap.create(objCode).resendLosslessObject(cmd.substring(0,1), objCode, objKeys, objValues, uuid, this);
+                } catch (Exception ex) {
                     Main.getInstance().sendExceptionMail(ex, line, null, false);
                 }
             }
@@ -74,7 +76,7 @@ final class Hub {
         private String appVersion;                  // version of the node
         private String coreVersion;                 // Spiderwiz version of the node
         private String remoteAddress;               // remote address of the node
-        private String userID;                      // user ID attached to the channel the node appeared from
+        private final HashSet<String> userIDs;      // user IDs attached to the channels the node appeared from
         private ZDictionary applicationParams;      // application parameter map of the node
         private boolean connected = false;          // true when application is connected
         private ZDate since = null;                 // time of last connection/disconnection
@@ -101,6 +103,7 @@ final class Hub {
                     return new ZModInteger(LosslessPipe.DEFAULT_MODULO);
                 }
             };
+            userIDs = new HashSet<>();
         }
         
         public UUID getUuid() {
@@ -140,13 +143,12 @@ final class Hub {
         }
 
         private synchronized void setApplicationInfo(String appName, String appVersion, String coreVersion, String remoteAddress,
-            String userID, ZDictionary applicationParams)
+            ZDictionary applicationParams)
         {
             this.appName = appName;
             this.appVersion = appVersion;
             this.coreVersion = coreVersion;
             this.remoteAddress = remoteAddress;
-            this.userID = userID;
             this.applicationParams = applicationParams;
             if (!connected) {
                 connected = true;
@@ -154,9 +156,14 @@ final class Hub {
             }
             updateAppHistory();
         }
+        
+        synchronized String getUserIdList() {
+            return userIDs.isEmpty() ? null : ZUtilities.concatAll(",", userIDs);
+        }
 
-        synchronized String getUserID() {
-            return userID;
+        synchronized void addUserID(String userID) {
+            if (userID != null)
+                userIDs.add(userID);
         }
 
         /**
@@ -196,10 +203,21 @@ final class Hub {
         
         private synchronized void updateAppHistory() {
             String objectCodes = consumedObjects.getAsString(DataManager.getInstance().getProducedObjects());
-            if (!objectCodes.isEmpty())
-                Main.getInstance().getHistory().storeAppHistory(
-                    uuid, appName, appVersion, coreVersion, remoteAddress, userID, applicationParams, objectCodes,
-                    connected ? null : since);
+            if (!objectCodes.isEmpty()) {
+                if (userIDs.isEmpty())
+                    storeAppHistory(null, objectCodes);
+                else
+                    // If there are multiple userIDs, add a line for each user
+                    userIDs.forEach((userID) -> {
+                        storeAppHistory(userID, objectCodes);
+                });
+            }
+        }
+        
+        private void storeAppHistory(String userID, String objectCodes) {
+            Main.getInstance().getHistory().storeAppHistory(
+                uuid, appName, appVersion, coreVersion, remoteAddress, userID, applicationParams, objectCodes,
+                connected ? null : since);
         }
         
         private synchronized void loadAppHistory(String appName, String appVersion, String coreVersion, String remoteAddress,
@@ -209,7 +227,8 @@ final class Hub {
             this.appVersion = appVersion;
             this.coreVersion = coreVersion;
             this.remoteAddress = remoteAddress;
-            this.userID = userID;
+            if (userID != null)
+                userIDs.add(userID);
             this.applicationParams = applicationParams;
             consumedObjects.fromString(objectCodes, null);
             since = lastSeen;
@@ -331,6 +350,10 @@ final class Hub {
             }
         }
         
+        synchronized boolean checkUserIdConflict(String userID) {
+            return userID == null && userIDs.isEmpty() || userID != null && userIDs.contains(userID);
+        }
+        
         /**
          * Send a request for object reset for this node over the specified channel
          */
@@ -338,16 +361,14 @@ final class Hub {
             if (!connected)
                 return;
             // Don't send if there is user ID conflict
-            if (channel.getAppUser() == null && getUserID() != null ||
-                channel.getAppUser() != null && !channel.getAppUser().equalsIgnoreCase(getUserID())
-            )
+            if (!checkUserIdConflict(channel.getAppUser()))
                 return;
             // If we are not in a hub mode, we request only the objects that we also consume
             String required =
                 consumedObjects.getAsString(Main.getMyConfig().isHubMode() ? null : DataManager.getInstance().getConsumedObjects());
             if (!required.isEmpty())
                 requestReset(required, null, uuid, getApplicationParams(), getAppName(), getAppVersion(),
-                    getCoreVersion(), getRemoteAddress(), getUserID(), channel);
+                    getCoreVersion(), getRemoteAddress(), channel);
         }
         
         /**
@@ -357,14 +378,13 @@ final class Hub {
          * @param appVersion                version of the origin node
          * @param coreVersion               Spiderwiz version of the origin node
          * @param remoteAddress             remote address of the origin node
-         * @param userID                    user ID attached to the channel the node appeared from
          * @param applicationParams
          */
         void handleResetRequest(String consumedObjectsString, String appName, String appVersion, String coreVersion,
-            String remoteAddress, String userID, ZDictionary applicationParams
+            String remoteAddress, ZDictionary applicationParams
         ) {
             consumedObjects.fromString(consumedObjectsString, null);
-            setApplicationInfo(appName, appVersion, coreVersion, remoteAddress, userID, applicationParams);
+            setApplicationInfo(appName, appVersion, coreVersion, remoteAddress, applicationParams);
         }
         
         /**
@@ -399,7 +419,7 @@ final class Hub {
             if (pipe != null) {
                 // Don't reset lossless objects
                 if (!resetting) {
-                    if (obj.filterDestination(uuid, appName, userID, remoteAddress, applicationParams)) {
+                    if (obj.filterDestination(uuid, appName, getUserIdList(), remoteAddress, applicationParams)) {
                         propagateFilteredObject(obj, false, Collections.singleton(uuid), originChannel, pipe);
                         appInfo.updateOutputActivity(0);
                     }
@@ -410,7 +430,7 @@ final class Hub {
             // is not a query reply.
             if (!connected || !consumedObjects.containsKey(obj.getObjectCode()) && !obj.isQueryReply())
                 return -1;
-            if (obj.filterDestination(uuid, appName, userID, remoteAddress, applicationParams)) {
+            if (obj.filterDestination(uuid, appName, getUserIdList(), remoteAddress, applicationParams)) {
                 appInfo.updateOutputActivity(0);
                 return 1;
             }
@@ -506,7 +526,7 @@ final class Hub {
             try {
                 lockRead();
                 for (RemoteNode node : values()) {
-                    if (node.getAppName() != null && (userID == null || userID.equalsIgnoreCase(node.getUserID()))) {
+                    if (node.getAppName() != null && (userID == null || node.checkUserIdConflict(userID))) {
                         AppInfo info = node.getAppInfo();
                         if (Main.getMyConfig().isPropertySet(MyConfig.IS_ADMIN) || info.isRelevant())
                             infos.put(node.getAppName() + node.getRemoteAddress() + node.getUuid(), info);
@@ -968,12 +988,10 @@ final class Hub {
      * @param appVersion        version of the origin node
      * @param coreVersion       Spiderwiz versin of the origin node
      * @param remoteAddress     remote address of the origin node
-     * @param userID            User ID the destination application used when connecting to the network (by [consumer-n] or [producer-n]
-     *                          property in the configuration file), or null if not defined.
      * @param channel           The channel over which to send the request
      */
     void requestReset(String objectCodes, UUID targetUUID, UUID originUUID, Map<String, String> applicationParams,
-        String appName, String appVersion, String coreVersion, String remoteAddress, String userID, DataHandler channel
+        String appName, String appVersion, String coreVersion, String remoteAddress, DataHandler channel
     ) {
         synchronized(resetCounter) {
             channel.transmitResetRequest(
@@ -991,7 +1009,7 @@ final class Hub {
      * @param channel           The channel over which to send the request
      */
     void requestObectReset(String objectCode, UUID targetUUID, DataHandler channel) {
-        requestReset(objectCode, targetUUID, null, null, null, null, null, null, null, channel);
+        requestReset(objectCode, targetUUID, null, null, null, null, null, null, channel);
     }
     
     /**
@@ -1046,7 +1064,7 @@ final class Hub {
         // First request for ourselves
         requestReset(DataManager.getInstance().getConsumedObjectsAsString(), null, Main.getInstance().getAppUUID(),
             Main.getInstance().getAppParams(), Main.getInstance().getAppName(), Main.getInstance().getAppVersion(),
-            Main.getInstance().getCoreVersion(), null, null, channel);
+            Main.getInstance().getCoreVersion(), null, channel);
         
         // Now for remote nodes
         nodeMap.requestChannelReset(channel);
@@ -1175,15 +1193,23 @@ final class Hub {
      * @param appVersion                version of the origin node
      * @param coreVersion               Spiderwiz versin of the origin node
      * @param remoteAddress             remote address of the origin node
-     * @param userID                    user ID attached to the channel the node appeared from
      * @param applicationParams
      * @return true if 'consumeObjects' list length > 0 after executing the method.
      */
     void handleResetRequest(UUID uuid, String consumedObjectsString, String appName, String appVersion,
-        String coreVersion, String remoteAddress, String userID, ZDictionary applicationParams
+        String coreVersion, String remoteAddress, ZDictionary applicationParams
     ) {
-        nodeMap.create(uuid).handleResetRequest(consumedObjectsString, appName, appVersion, coreVersion, remoteAddress, userID,
+        nodeMap.create(uuid).handleResetRequest(consumedObjectsString, appName, appVersion, coreVersion, remoteAddress,
             applicationParams);
+    }
+    
+    /**
+     * Add the user ID defined for the connection to the application that requests reset through this connection.
+     * @param uuid
+     * @param userID 
+     */
+    void addUserID(UUID uuid, String userID) {
+        nodeMap.create(uuid).addUserID(userID);
     }
     
     void loadAppHistory(UUID uuid, String appName, String appVersion, String coreVersion, String remoteAddress, String userID,

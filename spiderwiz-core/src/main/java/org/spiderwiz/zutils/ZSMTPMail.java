@@ -121,6 +121,7 @@ public class ZSMTPMail implements ZMail {
                 props.put("mail.smtp.auth", "true");
                 break;
             case TLS:
+                props.put("mail.smtp.auth", "true");
                 props.put("mail.smtp.starttls.enable", "true");
                 break;
         }

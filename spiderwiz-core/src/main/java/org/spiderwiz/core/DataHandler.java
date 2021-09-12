@@ -382,7 +382,10 @@ final class DataHandler extends ChannelHandler {
     String getAppFolderName() {
         String address = getRemoteAddress();
         int n = address.lastIndexOf(":");
-        return appName + "." + (n < 0 ? address : address.substring(0, n));
+        String result = appName + "." + (n < 0 ? address : address.substring(0, n));
+        if (appUser != null)
+            result += "." + appUser;
+        return result;
     }
 
     ZLog getLogger() {
@@ -527,7 +530,8 @@ final class DataHandler extends ChannelHandler {
             if (sm == null)
                 sm = new SequenceManager(this);
             setSequenceManager(sm);
-        }
+        } else
+            sequenceManager.resetAll();
         Hub.getInstance().resetChannelObjects(this);
         boolean logicalCompression = (compress & LOGICAL_COMPRESSION) > 0;
         boolean fullLog =
@@ -556,8 +560,6 @@ final class DataHandler extends ChannelHandler {
                 destUUID = UUID.fromString(dest);
         }
         ZDate deployTime = i < s.length ? ZDate.parseFullTimestamp(s[i++]) : null;
-        if (!isResetInOrder(ts, seq, requestorUUID))
-            return;
         UUID originUUID = null;
         if (i < s.length) {
             String uuid = s[i++];
@@ -565,6 +567,10 @@ final class DataHandler extends ChannelHandler {
                 originUUID = UUID.fromString(uuid);
         }
         if (Hub.getInstance().isMe(originUUID) > 0)     // Ignore boomerangs
+            return;
+        if (originUUID != null)
+            Hub.getInstance().addUserID(originUUID, getAppUser());
+        if (!isResetInOrder(ts, seq, requestorUUID))
             return;
         ZDictionary applicationParams = i < s.length ? Serializer.parseParameterList(s[i++]) : null;
         String requestingAppName = i < s.length ? Serializer.unescapeDelimiters(s[i++]) : null;
@@ -584,10 +590,7 @@ final class DataHandler extends ChannelHandler {
             }
         };
         // If we are not in hub mode retain only the object codes that we produce.
-        requestedObjects.fromString(
-            objectList,
-            Main.getMyConfig().isHubMode() ? null : DataManager.getInstance().getProducedObjects()
-        );
+        requestedObjects.fromString(objectList, null);
         objectList = requestedObjects.getAsString();
 
         // Log the request
@@ -600,7 +603,7 @@ final class DataHandler extends ChannelHandler {
         if (originUUID != null && Hub.getInstance().isMe(originUUID) < 0) {
             connectedNodes.add(originUUID);
             Hub.getInstance().handleResetRequest(originUUID, objectList, requestingAppName, requestingAppVersion,
-                requestingCoreVesion, requestingRemoteAddress, getAppUser(), applicationParams);
+                requestingCoreVesion, requestingRemoteAddress, applicationParams);
         }
 
         // Process the request if it is for us
@@ -729,7 +732,7 @@ final class DataHandler extends ChannelHandler {
         try {
             DataObject obj;
             if ((   Hub.getInstance().isForMe(components.destinations) < 0 ||
-                    !DataManager.getInstance().isConsumingObject(objCode) && !QueryObject.isReply(prefix, components.fields) ||
+                    !DataManager.getInstance().isConsumingObject(objCode) && !QueryObject.isQueryReply(prefix, components.fields) ||
                     ((obj = DataManager.getInstance().processCommand(
                         prefix, objCode, components.keys, components.fields, components.origin, components.destinations, this,
                         components.expandedCommand, components.timestamp, components.ackSeq, command.length()

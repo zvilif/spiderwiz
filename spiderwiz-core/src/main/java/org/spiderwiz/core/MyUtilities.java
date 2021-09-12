@@ -24,6 +24,8 @@ class MyUtilities {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
             ZDate creationTime = new ZDate(attrs.creationTime().toMillis());
+            ZDate modifTime = new ZDate(attrs.lastModifiedTime().toMillis());
+            creationTime = creationTime.earliest(modifTime);
             if (oldestTime == null || creationTime.before(oldestTime)) {
                 oldestFile = file;
                 oldestTime = creationTime;
@@ -107,10 +109,10 @@ class MyUtilities {
         try {
             OldFileFinder finder = new OldFileFinder();
             Files.walkFileTree(Paths.get(path), finder);
-            return finder.oldestTime.truncate(ZDate.SECOND);
+            if (finder.oldestTime != null)
+                return finder.oldestTime.truncate(ZDate.SECOND);
         }
-        catch (NoSuchFileException ex) {
-            return null;
-        }
+        catch (NoSuchFileException ex) {}
+        return null;
     }
 }
