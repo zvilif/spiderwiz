@@ -12,4 +12,5 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <description>Contains spiderwiz-core and spiderwiz-websocket-server</description>
 </project>
