@@ -7,12 +7,8 @@ import java.util.List;
 
 /**
  * A utility class for generating simple HTML documents.
-<<<<<<< HEAD
   * @author @author  zvil
 */
-=======
- */
->>>>>>> origin/master
 public final class ZHtml {
 
     private ZHtml() {

@@ -12,12 +12,8 @@ import java.util.function.Predicate;
  * The Java implementation of {@link java.util.HashSet} is unsynchronized. This class extends the implementation to provide
  * synchronization.
  * @param <T>   the type of elements maintained by this set.
-<<<<<<< HEAD
   * @author @author  zvil
 */
-=======
- */
->>>>>>> origin/master
 public class ZHashSet<T> extends HashSet<T>{
     private final ZLock lock;
 
