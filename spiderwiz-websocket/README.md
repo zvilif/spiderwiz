@@ -14,3 +14,4 @@ Non-Maven users can download the above mentioned jars directly from [http://spid
 
 ## Versions
 - Version Z4.00: Full published version, separated to modules.
+- Version 1.3 depends on spiderwiz-core version 4.3
