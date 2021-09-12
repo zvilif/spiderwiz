@@ -43,7 +43,8 @@ import org.spiderwiz.zutils.Ztrings;
  * <p>
  * You can mark the query as <em>urgent</em> by overriding {@link #isUrgent()}. Urgent queries have priority over other items
  * circulated by the framework.
- */
+  * @author  zvil
+*/
 @WizQuery
 public abstract class QueryObject extends DataObject{
     enum QueryState {QUERY, REPLIED, NEXT, END, ABORTED}

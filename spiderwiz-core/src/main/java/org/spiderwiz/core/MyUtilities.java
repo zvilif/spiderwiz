@@ -14,7 +14,7 @@ import org.spiderwiz.zutils.ZDate;
 
 /**
  *
- * @author Zvi
+ * @author  zvil
  */
 class MyUtilities {
     private static class OldFileFinder extends SimpleFileVisitor<Path> {
