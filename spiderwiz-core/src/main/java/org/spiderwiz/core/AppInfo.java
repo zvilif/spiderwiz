@@ -6,7 +6,7 @@ import org.spiderwiz.zutils.ZDate;
 
 /**
  *
- * @author zvil<zvil@zvil.com>
+ * @author @author  zvil<@author  zvil@@author  zvil.com>
  */
 class AppInfo extends StatisticInfo {
     private final static int COMPRESSED = 2;

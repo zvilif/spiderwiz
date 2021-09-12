@@ -11,7 +11,7 @@ import org.spiderwiz.zutils.ZDate;
 
 /**
  *
- * @author zvil
+ * @author @author  zvil
  */
 class ImportInfo extends StatisticInfo {
     private class ImportColumnTitles {

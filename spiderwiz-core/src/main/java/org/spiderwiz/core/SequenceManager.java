@@ -17,7 +17,7 @@ import org.spiderwiz.zutils.Ztrings;
 
 /**
  * Manages sequencing object transmission between data nodes.
- * @author zvil
+ * @author @author  zvil
  */
 final class SequenceManager {
     /**

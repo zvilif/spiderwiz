@@ -4,7 +4,7 @@ import org.spiderwiz.annotation.WizField;
 
 /**
  * Handles upward messages to import servers originated by remote data nodes.
- * @author zvil
+ * @author @author  zvil
  */
 class RawExport extends DataObject {
     public final static String ObjectCode = Main.ObjectCodes.RawExport;
