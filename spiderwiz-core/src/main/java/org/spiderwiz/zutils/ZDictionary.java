@@ -4,7 +4,10 @@ import java.util.Map;
 
 /**
  * Equivalent of {@code ZHashMap<String,String>} with some utility methods.
+<<<<<<< HEAD
  * @author @author  zvil
+=======
+>>>>>>> origin/master
  */
 public class ZDictionary extends ZHashMap<String, String> {
     private static final String LIST_SEPARATOR = ";";

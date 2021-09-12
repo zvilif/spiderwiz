@@ -18,7 +18,10 @@ import java.util.Date;
  * </ul>
  * <p>
  * For details about the framework logging system see <a href="../core/doc-files/logging.html">Spiderwiz Logging System</a>.
+<<<<<<< HEAD
  * @author @author  zvil
+=======
+>>>>>>> origin/master
  */
 public class ZLog {
     private static final String DEFAULT_CHARSET = "UTF-8";

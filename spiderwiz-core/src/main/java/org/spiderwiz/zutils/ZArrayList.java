@@ -11,7 +11,10 @@ import java.util.function.Predicate;
  * The Java implementation of {@link java.util.ArrayList} is unsynchronized. This class extends the implementation to provide
  * synchronization.
  * @param <T>   Type of array elements
+<<<<<<< HEAD
  * @author @author  zvil
+=======
+>>>>>>> origin/master
  */
 public class ZArrayList<T> extends ArrayList<T> {
     private final ZLock lock;

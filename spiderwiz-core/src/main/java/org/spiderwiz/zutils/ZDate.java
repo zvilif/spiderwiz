@@ -12,7 +12,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Extension of {@link Date} that provides extra utility fields and methods.
+<<<<<<< HEAD
  * @author @author  zvil
+=======
+>>>>>>> origin/master
  */
 public final class ZDate extends Date {
 

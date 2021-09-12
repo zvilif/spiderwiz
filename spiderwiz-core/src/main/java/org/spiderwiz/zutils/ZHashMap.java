@@ -14,7 +14,10 @@ import java.util.function.Function;
  * synchronization.
  * @param <K>   type of key
  * @param <V>   type of value
+<<<<<<< HEAD
  * @author @author  zvil
+=======
+>>>>>>> origin/master
  */
 public class ZHashMap<K, V> extends HashMap<K, V>{
     private final ZLock lock;

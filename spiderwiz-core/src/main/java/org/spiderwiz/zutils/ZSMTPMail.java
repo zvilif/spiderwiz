@@ -21,7 +21,10 @@ import javax.mail.internet.MimeUtility;
  * SMTP mail configuration example:
  * <p style='padding-left:2em;'>
  * {@code [mail system]smtp;server=smtp.gmail.com;user=zvilif@spiderwiz.org;pwd=dumptrump;port=465;ssl}
+<<<<<<< HEAD
  * @author @author  zvil
+=======
+>>>>>>> origin/master
  */
 public class ZSMTPMail implements ZMail {
     /**

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
         <action>
@@ -26,3 +27,33 @@
             </goals>
         </action>
     </actions>
+=======
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Clean deploy</actionName>
+            <displayName>Clean deploy</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>deploy</goal>
+            </goals>
+        </action>
+        <action>
+            <actionName>CUSTOM-Encrypt password</actionName>
+            <displayName>Encrypt password</displayName>
+            <goals>
+                <goal>--encrypt-password</goal>
+                
+                
+                
+            </goals>
+        </action>
+        <action>
+            <actionName>CUSTOM-Verify</actionName>
+            <displayName>Verify</displayName>
+            <goals>
+                <goal>verify</goal>
+            </goals>
+        </action>
+    </actions>
+>>>>>>> origin/master

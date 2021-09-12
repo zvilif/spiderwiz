@@ -24,7 +24,10 @@ import java.util.stream.Stream;
 
 /**
  * Contains various static utility methods.
+<<<<<<< HEAD
  * @author @author  zvil
+=======
+>>>>>>> origin/master
  */
 public class ZUtilities {
     private static class FolderDeleter extends SimpleFileVisitor<Path> {
