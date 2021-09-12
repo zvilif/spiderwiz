@@ -15,3 +15,4 @@ Non-Maven users can download the above mentioned jars directly from [http://spid
 ## Versions
 - Version 2.3: initial published version.
 - Version Z4.00: Full published version, separated to modules.
+- Version 4.3: many bug fixes and additions
