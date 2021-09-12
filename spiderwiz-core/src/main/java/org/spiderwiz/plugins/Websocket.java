@@ -14,7 +14,7 @@ import org.spiderwiz.zutils.ZTrigger;
 
 /**
  * Implements WebSocket client
- * @author Zvi 
+ * @author zvil
  */
 public class Websocket extends Channel {
     // Implement WebSocket inputStream and outputStream

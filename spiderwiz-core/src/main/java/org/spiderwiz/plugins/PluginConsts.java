@@ -2,7 +2,8 @@ package org.spiderwiz.plugins;
 
 /**
  * Various constants used in the package
- */
+  * @author zvil
+*/
 public class PluginConsts {
     static final String TYPES[] = {"import", "producer", "consumer"};
     public static final String EXCEPTION_IN_ZBUFFER = "Exception when using ZBuffer";

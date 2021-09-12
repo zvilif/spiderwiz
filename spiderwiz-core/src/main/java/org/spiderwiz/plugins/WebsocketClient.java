@@ -14,7 +14,7 @@ import javax.websocket.WebSocketContainer;
 
 /**
  * Implements WebSocket client endpoint
- * @author Zvi 
+ * @author zvil
  */
 public class WebsocketClient extends Endpoint{
     private class MyMessageHandler implements MessageHandler.Partial<byte[]> {
